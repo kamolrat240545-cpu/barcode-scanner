@@ -1,1195 +1,1547 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 
-  <meta charset="UTF-8">
+<title>Barcode / SKU Scanner</title>
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
-  <title>ระบบสแกน Barcode / SKU</title>
+<style>
+*{box-sizing:border-box}
 
-  <script src="https://unpkg.com/html5-qrcode"></script>
+body{
+  margin:0;
+  padding:15px;
+  background:#f1f3f6;
+  font-family:Arial,"Noto Sans",sans-serif;
+  color:#222;
+}
 
-  <style>
+.container{
+  max-width:900px;
+  margin:auto;
+}
 
-    * {
-      box-sizing: border-box;
-    }
+.card{
+  background:#fff;
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:16px;
+  box-shadow:0 4px 15px rgba(0,0,0,.08);
+}
 
-    body {
-      margin: 0;
-      padding: 15px;
-      background: #f5f6f8;
-      font-family: Arial, "Noto Sans Thai", sans-serif;
-      color: #222;
-    }
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
 
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
+.title{
+  font-size:27px;
+  font-weight:bold;
+}
 
-    h1 {
-      text-align: center;
-      font-size: 27px;
-      margin: 5px 0 22px;
-    }
+.lang{
+  width:auto;
+  min-width:120px;
+  padding:10px 12px;
+  font-size:16px;
+  border-radius:12px;
+}
 
-    label {
-      display: block;
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
+h2{
+  margin:0 0 15px;
+}
 
-    select {
-      width: 100%;
-      height: 55px;
-      padding: 10px 15px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      background: white;
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
+label{
+  display:block;
+  font-size:19px;
+  font-weight:bold;
+  margin-bottom:9px;
+}
 
-    .nickname {
-      background: #eaf4ff;
-      padding: 15px;
-      border-radius: 10px;
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
+select,input{
+  width:100%;
+  padding:15px;
+  border:2px solid #ddd;
+  border-radius:14px;
+  font-size:18px;
+  background:#fff;
+  outline:none;
+}
 
-    #reader {
-      width: 100%;
-      display: none;
-      background: #111;
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 10px;
-    }
+select:focus,input:focus{
+  border-color:#1976d2;
+}
 
-    #reader video {
-      width: 100% !important;
-      height: auto !important;
-    }
+button{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:15px;
+  margin-top:10px;
+  font-size:18px;
+  font-weight:bold;
+  color:#fff;
+  cursor:pointer;
+}
 
-    .camera-button {
-      width: 100%;
-      height: 58px;
-      border: none;
-      border-radius: 10px;
-      background: #287be8;
-      color: white;
-      font-size: 20px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-bottom: 15px;
-    }
+button:disabled{
+  opacity:.5;
+}
 
-    .camera-button:disabled {
-      background: #999;
-    }
+.blue{background:#1976d2}
+.green{background:#16a34a}
+.gray{background:#6b7280}
+.red{background:#dc2626}
+.orange{background:#f59e0b}
 
-    .latest {
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-bottom: 15px;
-    }
+.camera{
+  background:#111;
+  border-radius:16px;
+  overflow:hidden;
+  margin-top:12px;
+}
 
-    .latest-title {
-      background: #eaf8ec;
-      padding: 13px;
-      font-weight: bold;
-      font-size: 18px;
-    }
+#barcode-reader,
+#sku-reader{
+  width:100%;
+}
 
-    .latest-content {
-      padding: 15px;
-      text-align: center;
-    }
+#barcode-reader video,
+#sku-reader video{
+  width:100%!important;
+  height:auto!important;
+}
 
-    .latest-type {
-      font-size: 15px;
-      margin-bottom: 5px;
-    }
+.hidden{
+  display:none!important;
+}
 
-    .latest-value {
-      font-size: 22px;
-      font-weight: bold;
-      color: #1769d1;
-      word-break: break-all;
-    }
+.message{
+  padding:14px;
+  border-radius:14px;
+  margin-top:12px;
+  font-size:17px;
+  font-weight:bold;
+}
 
-    .latest-time {
-      margin-top: 8px;
-      color: #555;
-    }
+.success{
+  background:#dcfce7;
+  color:#166534;
+}
 
-    .sku-section {
-      border-top: 1px solid #eee;
-      padding-top: 10px;
-      margin-top: 5px;
-    }
+.warning{
+  background:#fef3c7;
+  color:#92400e;
+}
 
-    .sku-title {
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
+.error{
+  background:#fee2e2;
+  color:#991b1b;
+}
 
-    .current-barcode {
-      background: #fff8dc;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 10px;
-      font-size: 16px;
-      word-break: break-all;
-    }
+.info{
+  background:#dbeafe;
+  color:#1e40af;
+}
 
-    .sku-input-row {
-      display: flex;
-      gap: 8px;
-    }
+.sku-item{
+  display:flex;
+  gap:8px;
+  margin-bottom:8px;
+}
 
-    .sku-input {
-      flex: 1;
-      height: 48px;
-      padding: 10px;
-      font-size: 17px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
+.sku-item input{
+  flex:1;
+}
 
-    .sku-button {
-      width: 125px;
-      border: none;
-      border-radius: 8px;
-      background: #dff5df;
-      color: #198c36;
-      font-size: 16px;
-      font-weight: bold;
-    }
+.delete-sku{
+  width:65px;
+  margin:0;
+  padding:10px;
+  background:#dc2626;
+}
 
-    .sku-list {
-      margin-top: 12px;
-    }
+.table-wrap{
+  overflow-x:auto;
+}
 
-    .sku-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      border-bottom: 1px solid #eee;
-      font-size: 16px;
-    }
+table{
+  width:100%;
+  border-collapse:collapse;
+}
 
-    .remove-sku {
-      color: red;
-      border: none;
-      background: none;
-      font-size: 20px;
-      cursor: pointer;
-    }
+th,td{
+  border:1px solid #ddd;
+  padding:10px 7px;
+  text-align:center;
+  word-break:break-word;
+}
 
-    .history {
-      margin-top: 20px;
-      border-top: 1px solid #ddd;
-      padding-top: 15px;
-    }
+th{
+  background:#eef2ff;
+}
 
-    .history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 18px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
+@media(max-width:600px){
+  .title{
+    font-size:22px;
+  }
 
-    .refresh {
-      color: #1769d1;
-      border: none;
-      background: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
+  .header{
+    align-items:flex-start;
+  }
 
-    .table-wrapper {
-      overflow-x: auto;
-    }
+  .lang{
+    min-width:105px;
+  }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    th {
-      background: #e8f2ff;
-      padding: 10px;
-      white-space: nowrap;
-    }
-
-    td {
-      padding: 9px;
-      border-bottom: 1px solid #ddd;
-      text-align: center;
-      white-space: nowrap;
-    }
-
-    .badge-barcode {
-      background: #e4efff;
-      color: #1266d1;
-      padding: 5px 9px;
-      border-radius: 6px;
-      font-weight: bold;
-    }
-
-    .badge-sku {
-      background: #ddf5df;
-      color: #168b32;
-      padding: 5px 9px;
-      border-radius: 6px;
-      font-weight: bold;
-    }
-
-    .save-button {
-      width: 100%;
-      height: 58px;
-      margin-top: 18px;
-      border: none;
-      border-radius: 10px;
-      background: #20a947;
-      color: white;
-      font-size: 20px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .save-button:disabled {
-      background: #999;
-    }
-
-    .message {
-      text-align: center;
-      margin-top: 10px;
-      min-height: 25px;
-      font-weight: bold;
-    }
-
-    .tip {
-      margin-top: 15px;
-      padding: 12px;
-      background: #fff8dc;
-      border-radius: 8px;
-      text-align: center;
-      color: #174f9c;
-    }
-
-  </style>
-
+  .card{
+    padding:15px;
+  }
+}
+</style>
 </head>
-
 
 <body>
 
 <div class="container">
 
-  <h1>
-    📷 ระบบสแกน Barcode / SKU
-  </h1>
+<!-- HEADER -->
+<div class="card">
+  <div class="header">
+    <div class="title" id="title">
+      📦 ระบบสแกน Barcode / SKU
+    </div>
+
+    <select id="language"
+            class="lang"
+            onchange="changeLanguage()">
+      <option value="th">🇹🇭 ไทย</option>
+      <option value="zh">🇨🇳 中文</option>
+      <option value="my">🇲🇲 မြန်မာ</option>
+      <option value="en">🇬🇧 English</option>
+    </select>
+  </div>
+</div>
 
 
-  <!-- เลือกพนักงาน -->
+<!-- EMPLOYEE -->
+<div class="card">
 
-  <label>
-    👤 เลือกผู้สแกน *
+  <label id="employeeLabel">
+    👤 เลือกพนักงาน
   </label>
 
-  <select id="picker">
+  <select id="employee">
+    <option value="">-- เลือกชื่อพนักงาน --</option>
 
-    <option value="">
-      -- เลือกชื่อพนักงาน --
-    </option>
+    <option value="นาย สหภาพ ทรัพย์บำเรอ">นาย สหภาพ ทรัพย์บำเรอ</option>
+    <option value="นาย รวีวัฒธ์ สีเสน">นาย รวีวัฒธ์ สีเสน</option>
+    <option value="นาย บัญชา ศุภศร">นาย บัญชา ศุภศร</option>
+    <option value="นาย ธีรพัฒน์ ขวานทอง">นาย ธีรพัฒน์ ขวานทอง</option>
+    <option value="นาย ธวัชชัย นุกิจ">นาย ธวัชชัย นุกิจ</option>
+    <option value="นาง มัลลิกา เทียงดาห์">นาง มัลลิกา เทียงดาห์</option>
+    <option value="น.ส.ประกายดาว ประทังเจริญ">น.ส.ประกายดาว ประทังเจริญ</option>
+    <option value="น.ส.กัลยา มูลพุ่มสาย">น.ส.กัลยา มูลพุ่มสาย</option>
 
-    <option value="นาย สหภาพ ทรัพย์บำเรอ">
-      นาย สหภาพ ทรัพย์บำเรอ
-    </option>
-
-    <option value="นาย รวีวัฒธ์ สีเสน">
-      นาย รวีวัฒธ์ สีเสน
-    </option>
-
-    <option value="นาย บัญชา ศุภศร">
-      นาย บัญชา ศุภศร
-    </option>
-
-    <option value="นาย ธีรพัฒน์ ขวานทอง">
-      นาย ธีรพัฒน์ ขวานทอง
-    </option>
-
-    <option value="นาย ธวัชชัย นุกิจ">
-      นาย ธวัชชัย นุกิจ
-    </option>
-
-    <option value="นาง มัลลิกา เทียงดาห์">
-      นาง มัลลิกา เทียงดาห์
-    </option>
-
-    <option value="น.ส.ประกายดาว ประทังเจริญ">
-      น.ส.ประกายดาว ประทังเจริญ
-    </option>
-
-    <option value="น.ส.กัลยา มูลพุ่มสาย">
-      น.ส.กัลยา มูลพุ่มสาย
-    </option>
-
-    <option value="ZinMin htet">
-      ZinMin htet
-    </option>
-
-    <option value="WIN THU RAIN">
-      WIN THU RAIN
-    </option>
-
-    <option value="WAI PHYO">
-      WAI PHYO
-    </option>
-
-    <option value="THIHA MIN WAI">
-      THIHA MIN WAI
-    </option>
-
-    <option value="THANT ZIN OO">
-      THANT ZIN OO
-    </option>
-
-    <option value="THANT ZIN AUNG">
-      THANT ZIN AUNG
-    </option>
-
-    <option value="SI POE">
-      SI POE
-    </option>
-
-    <option value="SAW WAH DO MOO">
-      SAW WAH DO MOO
-    </option>
-
-    <option value="SAW SI BLU HSEL">
-      SAW SI BLU HSEL
-    </option>
-
-    <option value="SAW SAY">
-      SAW SAY
-    </option>
-
-    <option value="Saw Poe Chit">
-      Saw Poe Chit
-    </option>
-
-    <option value="SAW PATHI HTOO">
-      SAW PATHI HTOO
-    </option>
-
-    <option value="SAW JOE">
-      SAW JOE
-    </option>
-
-    <option value="SAW GAY DO HTOO">
-      SAW GAY DO HTOO
-    </option>
-
-    <option value="SAW ER KEN LAH">
-      SAW ER KEN LAH
-    </option>
-
-    <option value="SAN LIN">
-      SAN LIN
-    </option>
-
-    <option value="PYAE PHYO HAN">
-      PYAE PHYO HAN
-    </option>
-
-    <option value="Pyae Phyo">
-      Pyae Phyo
-    </option>
-
-    <option value="PAING PAING SOE">
-      PAING PAING SOE
-    </option>
-
-    <option value="NJAING MTO KO">
-      NJAING MTO KO
-    </option>
-
-    <option value="Myint Myat oo">
-      Myint Myat oo
-    </option>
-
-    <option value="MYAT MIN KO">
-      MYAT MIN KO
-    </option>
-
-    <option value="MOE KYAW KYAW">
-      MOE KYAW KYAW
-    </option>
-
-    <option value="MOE HTET KYAW">
-      MOE HTET KYAW
-    </option>
-
-    <option value="MG AYE LIN">
-      MG AYE LIN
-    </option>
-
-    <option value="KYAW TUN LIN">
-      KYAW TUN LIN
-    </option>
-
-    <option value="KYAW NAING TUN">
-      KYAW NAING TUN
-    </option>
-
-    <option value="HTOO HTOO">
-      HTOO HTOO
-    </option>
-
-    <option value="EH SOE">
-      EH SOE
-    </option>
-
-    <option value="EH POE">
-      EH POE
-    </option>
-
-    <option value="CHO CHO LWIN">
-      CHO CHO LWIN
-    </option>
-
-    <option value="AUNG PAING SOE">
-      AUNG PAING SOE
-    </option>
-
-    <option value="หม่อโอมิ">
-      หม่อโอมิ
-    </option>
-
+    <option value="ZinMin htet">ZinMin htet</option>
+    <option value="WIN THU RAIN">WIN THU RAIN</option>
+    <option value="WAI PHYO">WAI PHYO</option>
+    <option value="THIHA MIN WAI">THIHA MIN WAI</option>
+    <option value="THANT ZIN OO">THANT ZIN OO</option>
+    <option value="THANT ZIN AUNG">THANT ZIN AUNG</option>
+    <option value="SI POE">SI POE</option>
+    <option value="SAW WAH DO MOO">SAW WAH DO MOO</option>
+    <option value="SAW SI BLU HSEL">SAW SI BLU HSEL</option>
+    <option value="SAW SAY">SAW SAY</option>
+    <option value="Saw Poe Chit">Saw Poe Chit</option>
+    <option value="SAW PATHI HTOO">SAW PATHI HTOO</option>
+    <option value="SAW JOE">SAW JOE</option>
+    <option value="SAW GAY DO HTOO">SAW GAY DO HTOO</option>
+    <option value="SAW ER KEN LAH">SAW ER KEN LAH</option>
+    <option value="SAN LIN">SAN LIN</option>
+    <option value="PYAE PHYO HAN">PYAE PHYO HAN</option>
+    <option value="Pyae Phyo">Pyae Phyo</option>
+    <option value="PAING PAING SOE">PAING PAING SOE</option>
+    <option value="NJAING MTO KO">NJAING MTO KO</option>
+    <option value="Myint Myat oo">Myint Myat oo</option>
+    <option value="MYAT MIN KO">MYAT MIN KO</option>
+    <option value="MOE KYAW KYAW">MOE KYAW KYAW</option>
+    <option value="MOE HTET KYAW">MOE HTET KYAW</option>
+    <option value="MG AYE LIN">MG AYE LIN</option>
+    <option value="KYAW TUN LIN">KYAW TUN LIN</option>
+    <option value="KYAW NAING TUN">KYAW NAING TUN</option>
+    <option value="HTOO HTOO">HTOO HTOO</option>
+    <option value="EH SOE">EH SOE</option>
+    <option value="EH POE">EH POE</option>
+    <option value="CHO CHO LWIN">CHO CHO LWIN</option>
+    <option value="AUNG PAING SOE">AUNG PAING SOE</option>
+    <option value="หม่อโอมิ">หม่อโอมิ</option>
   </select>
 
+</div>
 
-  <div class="nickname">
 
-    ชื่อเล่น:
-    <span id="nickname">-</span>
+<!-- BARCODE -->
+<div class="card">
+
+  <h2 id="barcodeTitle">📦 Barcode</h2>
+
+  <div id="barcode-camera-area" class="hidden">
+
+    <div class="camera">
+      <div id="barcode-reader"></div>
+    </div>
+
+    <button class="gray"
+            onclick="stopBarcodeScanner()"
+            id="closeBarcodeBtn">
+      ⬛ ปิดกล้อง Barcode
+    </button>
 
   </div>
 
-
-  <!-- กล้อง -->
-
-  <div id="reader"></div>
-
-
-  <button
-    class="camera-button"
-    id="cameraButton"
-    onclick="startCamera()"
-  >
-    📷 เปิดกล้องสแกน
+  <button class="blue"
+          id="openBarcodeBtn"
+          onclick="startBarcodeScanner()">
+    📷 เปิดกล้องสแกน Barcode
   </button>
 
+  <label id="barcodeInputLabel"
+         style="margin-top:18px">
+    Barcode ที่สแกนได้
+  </label>
 
-  <!-- สแกนล่าสุด -->
+  <input id="barcode"
+         autocomplete="off"
+         placeholder="สแกนหรือพิมพ์ Barcode">
 
-  <div class="latest">
-
-    <div class="latest-title">
-      ✅ สแกนล่าสุด
-    </div>
-
-    <div class="latest-content">
-
-      <div class="latest-type">
-
-        ประเภท:
-
-        <span id="latestType">
-          -
-        </span>
-
-      </div>
-
-      <div class="latest-value">
-
-        <span id="latestValue">
-          -
-        </span>
-
-      </div>
-
-      <div class="latest-time">
-
-        <span id="latestTime">
-          -
-        </span>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- SKU -->
-
-  <div class="sku-section">
-
-    <div class="sku-title">
-      📦 สแกน SKU ต่อจาก Barcode
-    </div>
-
-    <div class="current-barcode">
-
-      Barcode ปัจจุบัน:
-
-      <strong id="currentBarcode">
-        ยังไม่ได้สแกน
-      </strong>
-
-    </div>
-
-
-    <div class="sku-input-row">
-
-      <input
-        id="skuInput"
-        class="sku-input"
-        placeholder="รอสแกน SKU..."
-        autocomplete="off"
-      >
-
-      <button
-        class="sku-button"
-        onclick="addSKU()"
-      >
-        พร้อมสแกน
-      </button>
-
-    </div>
-
-
-    <div
-      id="skuList"
-      class="sku-list"
-    ></div>
-
-  </div>
-
-
-  <!-- ประวัติ -->
-
-  <div class="history">
-
-    <div class="history-header">
-
-      <span>
-        🕘 ประวัติการสแกนล่าสุด (10 รายการ)
-      </span>
-
-      <button
-        class="refresh"
-        onclick="loadHistory()"
-      >
-        🔄 รีเฟรช
-      </button>
-
-    </div>
-
-
-    <div class="table-wrapper">
-
-      <table>
-
-        <thead>
-
-          <tr>
-
-            <th>#</th>
-            <th>เวลา</th>
-            <th>ชื่อผู้สแกน</th>
-            <th>ประเภท</th>
-            <th>ค่าที่สแกน</th>
-
-          </tr>
-
-        </thead>
-
-        <tbody id="historyBody">
-
-          <tr>
-
-            <td colspan="5">
-              ยังไม่มีข้อมูล
-            </td>
-
-          </tr>
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-  </div>
-
-
-  <!-- บันทึก -->
-
-  <button
-    class="save-button"
-    id="saveButton"
-    onclick="saveAll()"
-  >
-    💾 บันทึกทั้งหมดลง Google Sheet
+  <button class="blue"
+          onclick="checkBarcodeManual()"
+          id="checkBarcodeBtn">
+    🔍 ตรวจสอบ Barcode
   </button>
 
+  <div id="barcode-message"></div>
 
-  <div
-    id="message"
-    class="message"
-  ></div>
+</div>
 
 
-  <div class="tip">
+<!-- SKU -->
+<div class="card">
 
-    💡 สแกน Barcode ก่อน
-    → แล้วสแกน SKU ต่อได้หลายอัน
+  <h2 id="skuTitle">🏷️ SKU</h2>
+
+  <div id="sku-camera-area" class="hidden">
+
+    <div class="camera">
+      <div id="sku-reader"></div>
+    </div>
+
+    <button class="gray"
+            onclick="stopSkuScanner()"
+            id="closeSkuBtn">
+      ⬛ ปิดกล้อง SKU
+    </button>
 
   </div>
+
+  <button class="green"
+          id="openSkuBtn"
+          onclick="startSkuScanner()">
+    📷 เปิดกล้องสแกน SKU
+  </button>
+
+  <label id="skuInputLabel"
+         style="margin-top:18px">
+    เพิ่ม SKU
+  </label>
+
+  <input id="skuInput"
+         autocomplete="off"
+         placeholder="สแกนหรือพิมพ์ SKU">
+
+  <button class="blue"
+          onclick="addSkuManual()"
+          id="addSkuBtn">
+    ➕ เพิ่ม SKU
+  </button>
+
+  <div id="sku-message"></div>
+
+  <h3 id="skuListTitle">
+    รายการ SKU
+  </h3>
+
+  <div id="skuList"></div>
+
+</div>
+
+
+<!-- SAVE -->
+<div class="card">
+
+  <h2 id="saveTitle">
+    💾 บันทึกข้อมูล
+  </h2>
+
+  <button class="green"
+          id="saveBtn"
+          onclick="saveData()">
+    💾 บันทึกข้อมูลลง Google Sheets
+  </button>
+
+  <button class="gray"
+          onclick="clearAll()"
+          id="clearBtn">
+    🗑️ ล้างข้อมูล
+  </button>
+
+  <div id="save-message"></div>
+
+</div>
+
+
+<!-- HISTORY -->
+<div class="card">
+
+  <h2 id="historyTitle">
+    🕘 ประวัติการสแกนล่าสุด
+  </h2>
+
+  <button class="blue"
+          onclick="loadHistory()"
+          id="historyBtn">
+    🔄 โหลดประวัติ
+  </button>
+
+  <div class="table-wrap"
+       style="margin-top:15px">
+
+    <table>
+
+      <thead>
+        <tr>
+          <th id="timeHead">เวลา</th>
+          <th id="employeeHead">พนักงาน</th>
+          <th id="barcodeHead">Barcode</th>
+          <th id="skuHead">SKU</th>
+        </tr>
+      </thead>
+
+      <tbody id="historyBody">
+        <tr>
+          <td colspan="4">กด "โหลดประวัติ"</td>
+        </tr>
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
 
 </div>
 
 
 <script>
 
+/* =====================================================
+   GOOGLE APPS SCRIPT URL
+===================================================== */
 
-// ==================================================
-// ตัวแปรระบบ
-// ==================================================
-
-let scanner = null;
-
-let cameraRunning = false;
-
-let currentBarcode = "";
-
-let pendingData = [];
-
-let skuList = [];
-
-let lastScan = "";
-
-let lastScanTime = 0;
+const API_URL =
+"https://script.google.com/macros/s/AKfycbzdIRuze-6cCmtKanisxekt6a7yl0pALUQIh6Wttt7hXwlPSanocPxlVhpRaC6qnWpBvw/exec";
 
 
-// ==================================================
-// ชื่อเล่น
-// ==================================================
+/* =====================================================
+   VARIABLES
+===================================================== */
 
-const nicknames = {
+let barcodeScanner = null;
+let skuScanner = null;
 
-  "นาย สหภาพ ทรัพย์บำเรอ": "เจ๋ง",
-  "นาย รวีวัฒธ์ สีเสน": "โฟกัส",
-  "นาย บัญชา ศุภศร": "ออย",
-  "นาย ธีรพัฒน์ ขวานทอง": "ตี๋",
-  "นาย ธวัชชัย นุกิจ": "อาร์ม",
-  "นาง มัลลิกา เทียงดาห์": "พี่เปิ้น",
-  "น.ส.ประกายดาว ประทังเจริญ": "เนส",
-  "น.ส.กัลยา มูลพุ่มสาย": "พี่พลอย",
-  "ZinMin htet": "ซินนิแถะ",
-  "WIN THU RAIN": "พี่วิน",
-  "WAI PHYO": "แวะพิว",
-  "THIHA MIN WAI": "ตีห้า",
-  "THANT ZIN OO": "ต้าซินอู้",
-  "THANT ZIN AUNG": "ต้าซิงออง",
-  "SI POE": "เซโป",
-  "SAW WAH DO MOO": "ซอวัดตูมโม",
-  "SAW SI BLU HSEL": "ซอ",
-  "SAW SAY": "ซอเซ",
-  "Saw Poe Chit": "ชิ",
-  "SAW PATHI HTOO": "โพดา",
-  "SAW JOE": "ซูจู",
-  "SAW GAY DO HTOO": "ซอเค",
-  "SAW ER KEN LAH": "ซอเอ",
-  "SAN LIN": "ซาเลน",
-  "PYAE PHYO HAN": "บี้พิวหา",
-  "Pyae Phyo": "ปิพิว",
-  "PAING PAING SOE": "ไปไปซู",
-  "NJAING MTO KO": "ใน",
-  "Myint Myat oo": "เมี๊ยะ",
-  "MYAT MIN KO": "เมี๊ยะเมียกุ",
-  "MOE KYAW KYAW": "โกโม",
-  "MOE HTET KYAW": "โมทาจอง",
-  "MG AYE LIN": "เอเลน",
-  "KYAW TUN LIN": "จอ",
-  "KYAW NAING TUN": "จอไนทู",
-  "HTOO HTOO": "ทูทู",
-  "EH SOE": "เอปโซ่",
-  "EH POE": "เอปโพ่",
-  "CHO CHO LWIN": "พี่เอ",
-  "AUNG PAING SOE": "อองปัยซุ่",
-  "หม่อโอมิ": "หม่อ"
+let barcodeScanning = false;
+let skuScanning = false;
+
+let barcodeProcessing = false;
+let skuProcessing = false;
+
+let skus = [];
+
+
+/* =====================================================
+   LANGUAGE
+===================================================== */
+
+const translations = {
+
+  th:{
+    title:"📦 ระบบสแกน Barcode / SKU",
+    employee:"👤 เลือกพนักงาน",
+    employeePlaceholder:"-- เลือกชื่อพนักงาน --",
+
+    barcodeTitle:"📦 Barcode",
+    openBarcode:"📷 เปิดกล้องสแกน Barcode",
+    closeBarcode:"⬛ ปิดกล้อง Barcode",
+    barcodeInput:"Barcode ที่สแกนได้",
+    barcodePlaceholder:"สแกนหรือพิมพ์ Barcode",
+    checkBarcode:"🔍 ตรวจสอบ Barcode",
+
+    skuTitle:"🏷️ SKU",
+    openSku:"📷 เปิดกล้องสแกน SKU",
+    closeSku:"⬛ ปิดกล้อง SKU",
+    skuInput:"เพิ่ม SKU",
+    skuPlaceholder:"สแกนหรือพิมพ์ SKU",
+    addSku:"➕ เพิ่ม SKU",
+    skuList:"รายการ SKU",
+
+    saveTitle:"💾 บันทึกข้อมูล",
+    save:"💾 บันทึกข้อมูลลง Google Sheets",
+    clear:"🗑️ ล้างข้อมูล",
+
+    historyTitle:"🕘 ประวัติการสแกนล่าสุด",
+    history:"🔄 โหลดประวัติ",
+
+    time:"เวลา",
+    employeeHead:"พนักงาน",
+    barcodeHead:"Barcode",
+    skuHead:"SKU",
+
+    noSku:"ยังไม่มีรายการ SKU",
+    loading:"⏳ กำลังโหลด...",
+    noHistory:"ยังไม่มีประวัติ",
+
+    barcodeChecking:"🔍 กำลังตรวจสอบ Barcode...",
+    barcodeOK:"✅ Barcode สามารถใช้ได้",
+    barcodeDuplicate:"⚠️ Barcode ซ้ำ!",
+    barcodeFail:"❌ ตรวจสอบ Barcode ไม่สำเร็จ",
+
+    skuAdded:"✅ เพิ่ม SKU เรียบร้อยแล้ว",
+
+    needEmployee:"❌ กรุณาเลือกชื่อพนักงาน",
+    needBarcode:"❌ กรุณาสแกน Barcode",
+    needSku:"❌ กรุณาเพิ่ม SKU อย่างน้อย 1 รายการ",
+
+    saveSuccess:"✅ บันทึกข้อมูลเรียบร้อยแล้ว",
+    saving:"⏳ กำลังบันทึก...",
+    saveFail:"❌ บันทึกไม่สำเร็จ",
+
+    clearConfirm:"ต้องการล้าง Barcode และ SKU ที่กำลังกรอกใช่หรือไม่?"
+  },
+
+  zh:{
+    title:"📦 条码 / SKU 扫描系统",
+    employee:"👤 选择员工",
+    employeePlaceholder:"-- 请选择员工 --",
+
+    barcodeTitle:"📦 条码",
+    openBarcode:"📷 打开条码扫描",
+    closeBarcode:"⬛ 关闭条码扫描",
+    barcodeInput:"扫描的条码",
+    barcodePlaceholder:"扫描或输入条码",
+    checkBarcode:"🔍 检查条码",
+
+    skuTitle:"🏷️ SKU",
+    openSku:"📷 打开 SKU 扫描",
+    closeSku:"⬛ 关闭 SKU 扫描",
+    skuInput:"添加 SKU",
+    skuPlaceholder:"扫描或输入 SKU",
+    addSku:"➕ 添加 SKU",
+    skuList:"SKU 列表",
+
+    saveTitle:"💾 保存数据",
+    save:"💾 保存到 Google Sheets",
+    clear:"🗑️ 清除数据",
+
+    historyTitle:"🕘 最近扫描记录",
+    history:"🔄 加载记录",
+
+    time:"时间",
+    employeeHead:"员工",
+    barcodeHead:"条码",
+    skuHead:"SKU",
+
+    noSku:"暂无 SKU",
+    loading:"⏳ 加载中...",
+    noHistory:"暂无记录",
+
+    barcodeChecking:"🔍 正在检查条码...",
+    barcodeOK:"✅ 条码可以使用",
+    barcodeDuplicate:"⚠️ 条码重复！",
+    barcodeFail:"❌ 条码检查失败",
+
+    skuAdded:"✅ SKU 添加成功",
+
+    needEmployee:"❌ 请选择员工",
+    needBarcode:"❌ 请扫描条码",
+    needSku:"❌ 请至少添加一个 SKU",
+
+    saveSuccess:"✅ 数据保存成功",
+    saving:"⏳ 保存中...",
+    saveFail:"❌ 保存失败",
+
+    clearConfirm:"确定要清除当前条码和 SKU 吗？"
+  },
+
+  my:{
+    title:"📦 Barcode / SKU စကင်စနစ်",
+    employee:"👤 ဝန်ထမ်းရွေးချယ်ပါ",
+    employeePlaceholder:"-- ဝန်ထမ်းရွေးချယ်ပါ --",
+
+    barcodeTitle:"📦 Barcode",
+    openBarcode:"📷 Barcode စကင်ဖွင့်ရန်",
+    closeBarcode:"⬛ Barcode ကင်မရာပိတ်ရန်",
+    barcodeInput:"စကင်ဖတ်ထားသော Barcode",
+    barcodePlaceholder:"Barcode စကင်ဖတ်ပါ သို့မဟုတ် ရိုက်ပါ",
+    checkBarcode:"🔍 Barcode စစ်ဆေးရန်",
+
+    skuTitle:"🏷️ SKU",
+    openSku:"📷 SKU စကင်ဖွင့်ရန်",
+    closeSku:"⬛ SKU ကင်မရာပိတ်ရန်",
+    skuInput:"SKU ထည့်ရန်",
+    skuPlaceholder:"SKU စကင်ဖတ်ပါ သို့မဟုတ် ရိုက်ပါ",
+    addSku:"➕ SKU ထည့်ရန်",
+    skuList:"SKU စာရင်း",
+
+    saveTitle:"💾 ဒေတာသိမ်းရန်",
+    save:"💾 Google Sheets တွင်သိမ်းရန်",
+    clear:"🗑️ ဒေတာရှင်းရန်",
+
+    historyTitle:"🕘 နောက်ဆုံးစကင်မှတ်တမ်း",
+    history:"🔄 မှတ်တမ်းဖတ်ရန်",
+
+    time:"အချိန်",
+    employeeHead:"ဝန်ထမ်း",
+    barcodeHead:"Barcode",
+    skuHead:"SKU",
+
+    noSku:"SKU မရှိသေးပါ",
+    loading:"⏳ ဖတ်နေသည်...",
+    noHistory:"မှတ်တမ်းမရှိသေးပါ",
+
+    barcodeChecking:"🔍 Barcode စစ်ဆေးနေသည်...",
+    barcodeOK:"✅ Barcode အသုံးပြုနိုင်သည်",
+    barcodeDuplicate:"⚠️ Barcode ထပ်နေသည်!",
+    barcodeFail:"❌ Barcode စစ်ဆေးမအောင်မြင်ပါ",
+
+    skuAdded:"✅ SKU ထည့်ပြီးပါပြီ",
+
+    needEmployee:"❌ ဝန်ထမ်းရွေးချယ်ပါ",
+    needBarcode:"❌ Barcode စကင်ဖတ်ပါ",
+    needSku:"❌ SKU အနည်းဆုံးတစ်ခုထည့်ပါ",
+
+    saveSuccess:"✅ ဒေတာသိမ်းပြီးပါပြီ",
+    saving:"⏳ သိမ်းနေသည်...",
+    saveFail:"❌ သိမ်းဆည်းမအောင်မြင်ပါ",
+
+    clearConfirm:"လက်ရှိ Barcode နှင့် SKU များကို ရှင်းမည်မှာ သေချာပါသလား?"
+  },
+
+  en:{
+    title:"📦 Barcode / SKU Scanner",
+    employee:"👤 Select Employee",
+    employeePlaceholder:"-- Select employee --",
+
+    barcodeTitle:"📦 Barcode",
+    openBarcode:"📷 Scan Barcode",
+    closeBarcode:"⬛ Close Barcode Camera",
+    barcodeInput:"Scanned Barcode",
+    barcodePlaceholder:"Scan or enter Barcode",
+    checkBarcode:"🔍 Check Barcode",
+
+    skuTitle:"🏷️ SKU",
+    openSku:"📷 Scan SKU",
+    closeSku:"⬛ Close SKU Camera",
+    skuInput:"Add SKU",
+    skuPlaceholder:"Scan or enter SKU",
+    addSku:"➕ Add SKU",
+    skuList:"SKU List",
+
+    saveTitle:"💾 Save Data",
+    save:"💾 Save to Google Sheets",
+    clear:"🗑️ Clear Data",
+
+    historyTitle:"🕘 Recent Scan History",
+    history:"🔄 Load History",
+
+    time:"Time",
+    employeeHead:"Employee",
+    barcodeHead:"Barcode",
+    skuHead:"SKU",
+
+    noSku:"No SKU yet",
+    loading:"⏳ Loading...",
+    noHistory:"No history",
+
+    barcodeChecking:"🔍 Checking Barcode...",
+    barcodeOK:"✅ Barcode is available",
+    barcodeDuplicate:"⚠️ Barcode already scanned!",
+    barcodeFail:"❌ Barcode check failed",
+
+    skuAdded:"✅ SKU added successfully",
+
+    needEmployee:"❌ Please select an employee",
+    needBarcode:"❌ Please scan a Barcode",
+    needSku:"❌ Please add at least one SKU",
+
+    saveSuccess:"✅ Data saved successfully",
+    saving:"⏳ Saving...",
+    saveFail:"❌ Save failed",
+
+    clearConfirm:"Are you sure you want to clear the current Barcode and SKU?"
+  }
 
 };
 
 
-// ==================================================
-// เลือกพนักงาน
-// ==================================================
+let currentLanguage =
+  localStorage.getItem("scannerLanguage") || "th";
 
-document
-  .getElementById("picker")
-  .addEventListener("change", function() {
 
-    document
-      .getElementById("nickname")
-      .innerText =
-      nicknames[this.value] || "-";
+function t(key){
+
+  return (
+    translations[currentLanguage] &&
+    translations[currentLanguage][key]
+  ) || translations.th[key] || key;
+
+}
+
+
+/* =====================================================
+   CHANGE LANGUAGE
+===================================================== */
+
+function changeLanguage(){
+
+  currentLanguage =
+    document.getElementById("language").value;
+
+  localStorage.setItem(
+    "scannerLanguage",
+    currentLanguage
+  );
+
+  applyLanguage();
+
+}
+
+
+/* =====================================================
+   APPLY LANGUAGE
+===================================================== */
+
+function applyLanguage(){
+
+  const map = {
+
+    title:"title",
+    employeeLabel:"employee",
+    barcodeTitle:"barcodeTitle",
+    openBarcodeBtn:"openBarcode",
+    closeBarcodeBtn:"closeBarcode",
+    barcodeInputLabel:"barcodeInput",
+    checkBarcodeBtn:"checkBarcode",
+
+    skuTitle:"skuTitle",
+    openSkuBtn:"openSku",
+    closeSkuBtn:"closeSku",
+    skuInputLabel:"skuInput",
+    addSkuBtn:"addSku",
+    skuListTitle:"skuList",
+
+    saveTitle:"saveTitle",
+    saveBtn:"save",
+    clearBtn:"clear",
+
+    historyTitle:"historyTitle",
+    historyBtn:"history",
+
+    timeHead:"time",
+    employeeHead:"employeeHead",
+    barcodeHead:"barcodeHead",
+    skuHead:"skuHead"
+
+  };
+
+
+  Object.keys(map).forEach(function(id){
+
+    const el =
+      document.getElementById(id);
+
+    if(el){
+      el.textContent =
+        t(map[id]);
+    }
 
   });
 
 
-// ==================================================
-// เปิดกล้อง
-// ==================================================
-
-function startCamera() {
-
-  const picker =
-    document.getElementById("picker");
+  document
+    .getElementById("employee")
+    .options[0]
+    .textContent =
+      t("employeePlaceholder");
 
 
-  if (!picker.value) {
+  document
+    .getElementById("barcode")
+    .placeholder =
+      t("barcodePlaceholder");
+
+
+  document
+    .getElementById("skuInput")
+    .placeholder =
+      t("skuPlaceholder");
+
+
+  document
+    .getElementById("language")
+    .value =
+      currentLanguage;
+
+
+  renderSkuList();
+
+}
+
+
+/* =====================================================
+   MESSAGE
+===================================================== */
+
+function showMessage(id,type,text){
+
+  const el =
+    document.getElementById(id);
+
+  if(!el)return;
+
+  el.className =
+    "message " + type;
+
+  el.innerHTML =
+    text;
+
+}
+
+
+/* =====================================================
+   BARCODE CAMERA
+===================================================== */
+
+async function startBarcodeScanner(){
+
+  if(barcodeScanning)return;
+
+  barcodeProcessing = false;
+
+  document
+    .getElementById("barcode-camera-area")
+    .classList.remove("hidden");
+
+  document
+    .getElementById("openBarcodeBtn")
+    .classList.add("hidden");
+
+
+  try{
+
+    barcodeScanner =
+      new Html5Qrcode("barcode-reader");
+
+    barcodeScanning = true;
+
+
+    await barcodeScanner.start(
+
+      {
+        facingMode:"environment"
+      },
+
+      {
+        fps:10,
+
+        qrbox:function(w,h){
+
+          const size =
+            Math.floor(
+              Math.min(w,h)*0.70
+            );
+
+          return {
+            width:size,
+            height:size
+          };
+
+        },
+
+        aspectRatio:1.0
+
+      },
+
+      function(decodedText){
+
+        handleBarcodeScan(decodedText);
+
+      },
+
+      function(errorMessage){
+
+        // ไม่ต้องแสดง error ขณะค้นหา Barcode
+
+      }
+
+    );
+
+  }catch(error){
+
+    barcodeScanning = false;
+
+    document
+      .getElementById("barcode-camera-area")
+      .classList.add("hidden");
+
+    document
+      .getElementById("openBarcodeBtn")
+      .classList.remove("hidden");
 
     showMessage(
-      "⚠️ กรุณาเลือกชื่อพนักงานก่อน",
-      "red"
+      "barcode-message",
+      "error",
+      "❌ " + escapeHtml(
+        error.message || error
+      )
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   BARCODE SCAN
+   อ่านสำเร็จ 1 ครั้ง -> หยุดกล้องทันที
+===================================================== */
+
+async function handleBarcodeScan(decodedText){
+
+  if(barcodeProcessing)return;
+
+  barcodeProcessing = true;
+
+  const barcode =
+    String(decodedText || "").trim();
+
+  if(!barcode){
+
+    barcodeProcessing = false;
+    return;
+
+  }
+
+
+  // หยุดก่อนตรวจสอบ
+  // ป้องกันกล้องไหลไปอ่าน Barcode อื่น
+  await stopBarcodeScanner();
+
+
+  document
+    .getElementById("barcode")
+    .value =
+      barcode;
+
+
+  showMessage(
+    "barcode-message",
+    "info",
+    t("barcodeChecking")
+  );
+
+
+  await checkBarcode(barcode);
+
+}
+
+
+/* =====================================================
+   STOP BARCODE CAMERA
+===================================================== */
+
+async function stopBarcodeScanner(){
+
+  barcodeScanning = false;
+
+  if(barcodeScanner){
+
+    try{
+      await barcodeScanner.stop();
+    }catch(e){}
+
+    try{
+      await barcodeScanner.clear();
+    }catch(e){}
+
+    barcodeScanner = null;
+
+  }
+
+
+  document
+    .getElementById("barcode-camera-area")
+    .classList.add("hidden");
+
+  document
+    .getElementById("openBarcodeBtn")
+    .classList.remove("hidden");
+
+}
+
+
+/* =====================================================
+   MANUAL BARCODE CHECK
+===================================================== */
+
+async function checkBarcodeManual(){
+
+  const barcode =
+    document
+      .getElementById("barcode")
+      .value
+      .trim();
+
+  if(!barcode){
+
+    showMessage(
+      "barcode-message",
+      "error",
+      t("needBarcode")
     );
 
     return;
 
   }
 
+  if(barcodeProcessing)return;
 
-  if (cameraRunning) {
-    return;
-  }
+  barcodeProcessing = true;
 
+  await checkBarcode(barcode);
+
+}
+
+
+/* =====================================================
+   BARCODE CHECK JSONP
+===================================================== */
+
+function checkBarcode(barcode){
+
+  return new Promise(function(resolve){
+
+    const callback =
+      "barcode_" +
+      Date.now() +
+      "_" +
+      Math.floor(Math.random()*99999);
+
+    const script =
+      document.createElement("script");
+
+    let finished = false;
+
+
+    const timer =
+      setTimeout(function(){
+
+        if(finished)return;
+
+        finished = true;
+
+        cleanup();
+
+        showMessage(
+          "barcode-message",
+          "error",
+          t("barcodeFail")
+        );
+
+        barcodeProcessing = false;
+
+        resolve(false);
+
+      },15000);
+
+
+    function cleanup(){
+
+      clearTimeout(timer);
+
+      try{
+        delete window[callback];
+      }catch(e){}
+
+      if(script.parentNode){
+        script.parentNode.removeChild(script);
+      }
+
+    }
+
+
+    window[callback] =
+      function(data){
+
+        if(finished)return;
+
+        finished = true;
+
+        cleanup();
+
+
+        if(!data || !data.success){
+
+          showMessage(
+            "barcode-message",
+            "error",
+            "❌ " +
+            escapeHtml(
+              data &&
+              data.message
+                ? data.message
+                : t("barcodeFail")
+            )
+          );
+
+          barcodeProcessing = false;
+
+          resolve(false);
+
+          return;
+
+        }
+
+
+        // =================================================
+        // BARCODE ซ้ำ
+        // =================================================
+
+        if(data.duplicate){
+
+          showMessage(
+            "barcode-message",
+            "warning",
+            t("barcodeDuplicate") +
+            "<br>" +
+            escapeHtml(barcode)
+          );
+
+          barcodeProcessing = false;
+
+          resolve(false);
+
+          return;
+
+        }
+
+
+        // =================================================
+        // BARCODE ใหม่
+        // =================================================
+
+        showMessage(
+          "barcode-message",
+          "success",
+          t("barcodeOK")
+        );
+
+        barcodeProcessing = false;
+
+        resolve(true);
+
+      };
+
+
+    script.onerror =
+      function(){
+
+        if(finished)return;
+
+        finished = true;
+
+        cleanup();
+
+        showMessage(
+          "barcode-message",
+          "error",
+          t("barcodeFail")
+        );
+
+        barcodeProcessing = false;
+
+        resolve(false);
+
+      };
+
+
+    script.src =
+      API_URL +
+      "?action=checkBarcode" +
+      "&barcode=" +
+      encodeURIComponent(barcode) +
+      "&callback=" +
+      callback +
+      "&_=" +
+      Date.now();
+
+
+    document.body.appendChild(script);
+
+  });
+
+}
+
+
+/* =====================================================
+   SKU CAMERA
+===================================================== */
+
+async function startSkuScanner(){
+
+  if(skuScanning)return;
+
+  skuProcessing = false;
 
   document
-    .getElementById("reader")
-    .style.display = "block";
-
+    .getElementById("sku-camera-area")
+    .classList.remove("hidden");
 
   document
-    .getElementById("cameraButton")
-    .disabled = true;
+    .getElementById("openSkuBtn")
+    .classList.add("hidden");
 
 
-  scanner =
-    new Html5Qrcode("reader");
+  try{
+
+    skuScanner =
+      new Html5Qrcode("sku-reader");
+
+    skuScanning = true;
 
 
-  scanner
-    .start(
+    await skuScanner.start(
 
       {
-        facingMode: "environment"
+        facingMode:"environment"
       },
 
       {
-        fps: 10,
+        fps:10,
 
-        qrbox: {
-          width: 280,
-          height: 150
+        qrbox:function(w,h){
+
+          const size =
+            Math.floor(
+              Math.min(w,h)*0.70
+            );
+
+          return {
+            width:size,
+            height:size
+          };
+
         },
 
-        aspectRatio: 1.777
+        aspectRatio:1.0
+
       },
 
-      onScanSuccess,
+      function(decodedText){
 
-      function(error) {}
+        handleSkuScan(decodedText);
 
-    )
+      },
 
-    .then(function() {
+      function(errorMessage){
 
-      cameraRunning = true;
+        // ไม่ต้องทำอะไร
 
-      showMessage(
-        "📷 พร้อมสแกน",
-        "blue"
-      );
+      }
 
-    })
+    );
 
-    .catch(function(error) {
+  }catch(error){
 
-      console.log(error);
+    skuScanning = false;
 
-      document
-        .getElementById("reader")
-        .style.display = "none";
+    document
+      .getElementById("sku-camera-area")
+      .classList.add("hidden");
 
+    document
+      .getElementById("openSkuBtn")
+      .classList.remove("hidden");
 
-      document
-        .getElementById("cameraButton")
-        .disabled = false;
+    showMessage(
+      "sku-message",
+      "error",
+      "❌ " +
+      escapeHtml(
+        error.message || error
+      )
+    );
 
-
-      showMessage(
-        "❌ เปิดกล้องไม่ได้ กรุณาอนุญาตการใช้กล้อง",
-        "red"
-      );
-
-    });
+  }
 
 }
 
 
-// ==================================================
-// เมื่อสแกนสำเร็จ
-// ==================================================
+/* =====================================================
+   SKU SCAN
+===================================================== */
 
-function onScanSuccess(decodedText) {
+async function handleSkuScan(decodedText){
 
-  const value =
+  if(skuProcessing)return;
+
+  skuProcessing = true;
+
+  const sku =
     String(decodedText || "").trim();
 
+  if(!sku){
 
-  if (!value) {
-    return;
-  }
-
-
-  const now = Date.now();
-
-
-  // ป้องกันกล้องอ่านค่าเดิมซ้ำรัว ๆ
-  // แต่สามารถอ่าน SKU เดิมได้หลังจากเวลาผ่านไป
-
-  if (
-    value === lastScan &&
-    now - lastScanTime < 1200
-  ) {
-
+    skuProcessing = false;
     return;
 
   }
 
 
-  lastScan = value;
-
-  lastScanTime = now;
-
-
-  // ==================================================
-  // ยังไม่มี Barcode
-  // ค่าที่สแกน = Barcode
-  // ==================================================
-
-  if (!currentBarcode) {
-
-    setBarcode(value);
-
-    return;
-
-  }
+  // เจอ SKU แล้วหยุดกล้อง
+  await stopSkuScanner();
 
 
-  // ==================================================
-  // มี Barcode แล้ว
-  // ค่าที่สแกนต่อไป = SKU
-  //
-  // SKU ซ้ำได้
-  // ==================================================
+  document
+    .getElementById("skuInput")
+    .value =
+      sku;
 
-  addSKUFromScan(value);
+
+  addSku(sku);
 
 }
 
 
-// ==================================================
-// ตั้ง Barcode
-// ==================================================
+/* =====================================================
+   STOP SKU CAMERA
+===================================================== */
 
-function setBarcode(barcode) {
+async function stopSkuScanner(){
 
-  currentBarcode = barcode;
+  skuScanning = false;
 
-  skuList = [];
+  if(skuScanner){
 
+    try{
+      await skuScanner.stop();
+    }catch(e){}
 
-  document
-    .getElementById("currentBarcode")
-    .innerText = barcode;
+    try{
+      await skuScanner.clear();
+    }catch(e){}
 
+    skuScanner = null;
 
-  document
-    .getElementById("latestType")
-    .innerHTML =
-    '<span class="badge-barcode">Barcode</span>';
-
-
-  document
-    .getElementById("latestValue")
-    .innerText = barcode;
+  }
 
 
   document
-    .getElementById("latestTime")
-    .innerText =
-    new Date().toLocaleString();
+    .getElementById("sku-camera-area")
+    .classList.add("hidden");
 
-
-  renderSKUList();
-
-
-  showMessage(
-    "✅ Barcode สำเร็จ → สแกน SKU ต่อได้เลย",
-    "green"
-  );
+  document
+    .getElementById("openSkuBtn")
+    .classList.remove("hidden");
 
 }
 
 
-// ==================================================
-// เพิ่ม SKU จากกล้อง
-//
-// สำคัญ:
-// SKU ซ้ำได้
-// ไม่มี includes()
-// ไม่มีการบล็อก SKU ซ้ำ
-// ==================================================
+/* =====================================================
+   MANUAL SKU
+===================================================== */
 
-function addSKUFromScan(sku) {
+function addSkuManual(){
+
+  const sku =
+    document
+      .getElementById("skuInput")
+      .value
+      .trim();
+
+  if(!sku){
+
+    showMessage(
+      "sku-message",
+      "error",
+      t("skuInput")
+    );
+
+    return;
+
+  }
+
+  addSku(sku);
+
+}
+
+
+/* =====================================================
+   ADD SKU
+   สำคัญ:
+   ไม่มีการตรวจ SKU ซ้ำ
+   ดังนั้น SKU ซ้ำสามารถเพิ่มได้
+===================================================== */
+
+function addSku(sku){
 
   sku =
     String(sku || "").trim();
 
+  if(!sku){
 
-  if (!currentBarcode) {
-
-    showMessage(
-      "⚠️ ต้องสแกน Barcode ก่อน",
-      "red"
-    );
+    skuProcessing = false;
 
     return;
 
   }
 
 
-  if (!sku) {
-    return;
-  }
+  // ===================================================
+  // ไม่เช็กซ้ำ
+  // SKU ซ้ำสามารถเพิ่มได้
+  // ===================================================
 
-
-  // ==================================================
-  // SKU ซ้ำได้
-  // ==================================================
-
-  skuList.push(sku);
-
-
-  pendingData.push({
-
-    time:
-      new Date().toISOString(),
-
-    name:
-      document.getElementById("picker").value,
-
-    barcode:
-      currentBarcode,
-
-    sku:
-      sku
-
-  });
+  skus.push(sku);
 
 
   document
-    .getElementById("latestType")
-    .innerHTML =
-    '<span class="badge-sku">SKU</span>';
+    .getElementById("skuInput")
+    .value = "";
 
 
-  document
-    .getElementById("latestValue")
-    .innerText = sku;
-
-
-  document
-    .getElementById("latestTime")
-    .innerText =
-    new Date().toLocaleString();
-
-
-  renderSKUList();
+  renderSkuList();
 
 
   showMessage(
-    "✅ เพิ่ม SKU แล้ว",
-    "green"
+    "sku-message",
+    "success",
+    t("skuAdded")
   );
 
-}
 
-
-// ==================================================
-// เพิ่ม SKU จากช่องกรอก
-// ==================================================
-
-function addSKU() {
-
-  const input =
-    document.getElementById("skuInput");
-
-
-  const sku =
-    input.value.trim();
-
-
-  if (!sku) {
-    return;
-  }
-
-
-  addSKUFromScan(sku);
-
-
-  input.value = "";
+  skuProcessing = false;
 
 }
 
 
-// ==================================================
-// แสดงรายการ SKU
-// ==================================================
+/* =====================================================
+   RENDER SKU
+===================================================== */
 
-function renderSKUList() {
+function renderSkuList(){
 
-  const container =
+  const box =
     document.getElementById("skuList");
 
 
-  container.innerHTML = "";
+  if(skus.length===0){
+
+    box.innerHTML =
+      `<div style="
+        text-align:center;
+        padding:15px;
+        color:#777;">
+        ${escapeHtml(t("noSku"))}
+      </div>`;
+
+    return;
+
+  }
 
 
-  skuList.forEach(function(sku, index) {
-
-    const div =
-      document.createElement("div");
+  let html = "";
 
 
-    div.className =
-      "sku-item";
+  skus.forEach(function(sku,index){
 
+    html += `
+      <div class="sku-item">
 
-    div.innerHTML = `
+        <input
+          value="${escapeHtml(sku)}"
+          readonly>
 
-      <span>
-        ${index + 1}. ${escapeHtml(sku)}
-      </span>
+        <button
+          class="delete-sku"
+          onclick="removeSku(${index})">
+          🗑️
+        </button>
 
-      <button
-        class="remove-sku"
-        onclick="removeSKU(${index})"
-      >
-        ×
-      </button>
-
+      </div>
     `;
-
-
-    container.appendChild(div);
 
   });
 
-}
 
-
-// ==================================================
-// ลบ SKU
-// ==================================================
-
-function removeSKU(index) {
-
-  const sku =
-    skuList[index];
-
-
-  skuList.splice(index, 1);
-
-
-  // ลบเฉพาะข้อมูลรายการล่าสุดที่ตรงกัน
-  // เพื่อให้ SKU ซ้ำสามารถมีหลายรายการได้
-
-  let removed = false;
-
-  pendingData =
-    pendingData.filter(function(item) {
-
-      if (
-        !removed &&
-        item.barcode === currentBarcode &&
-        item.sku === sku
-      ) {
-
-        removed = true;
-
-        return false;
-
-      }
-
-      return true;
-
-    });
-
-
-  renderSKUList();
+  box.innerHTML = html;
 
 }
 
 
-// ==================================================
-// บันทึกทั้งหมด
-// ==================================================
+/* =====================================================
+   REMOVE SKU
+===================================================== */
 
-function saveAll() {
+function removeSku(index){
 
-  if (pendingData.length === 0) {
+  skus.splice(index,1);
+
+  renderSkuList();
+
+}
+
+
+/* =====================================================
+   SAVE
+===================================================== */
+
+async function saveData(){
+
+  const employee =
+    document
+      .getElementById("employee")
+      .value
+      .trim();
+
+  const barcode =
+    document
+      .getElementById("barcode")
+      .value
+      .trim();
+
+
+  if(!employee){
 
     showMessage(
-      "⚠️ ยังไม่มีข้อมูลใหม่",
-      "red"
+      "save-message",
+      "error",
+      t("needEmployee")
     );
 
     return;
@@ -1197,254 +1549,441 @@ function saveAll() {
   }
 
 
-  const button =
-    document.getElementById("saveButton");
+  if(!barcode){
+
+    showMessage(
+      "save-message",
+      "error",
+      t("needBarcode")
+    );
+
+    return;
+
+  }
 
 
-  button.disabled = true;
+  if(skus.length===0){
 
-  button.innerText =
-    "⏳ กำลังบันทึก...";
+    showMessage(
+      "save-message",
+      "error",
+      t("needSku")
+    );
+
+    return;
+
+  }
 
 
-  google.script.run
+  const saveBtn =
+    document.getElementById("saveBtn");
 
-    .withSuccessHandler(function(response) {
 
-      if (response.success) {
+  saveBtn.disabled = true;
+
+  saveBtn.textContent =
+    t("saving");
+
+
+  try{
+
+    const payload = {
+
+      employee:employee,
+
+      barcode:barcode,
+
+      skus:skus
+
+    };
+
+
+    const response =
+      await fetch(API_URL,{
+
+        method:"POST",
+
+        headers:{
+          "Content-Type":
+            "text/plain;charset=utf-8"
+        },
+
+        body:JSON.stringify(payload)
+
+      });
+
+
+    const result =
+      await response.json();
+
+
+    if(!result.success){
+
+      // ถ้า Barcode ซ้ำ
+      if(result.duplicate){
 
         showMessage(
-          "✅ บันทึก " +
-          response.count +
-          " รายการเรียบร้อยแล้ว",
-          "green"
+          "save-message",
+          "warning",
+          t("barcodeDuplicate")
         );
 
+      }else{
 
-        pendingData = [];
-
-        loadHistory();
-
-
-        button.innerText =
-          "💾 บันทึกทั้งหมดลง Google Sheet";
-
-
-        button.disabled = false;
+        showMessage(
+          "save-message",
+          "error",
+          "❌ " +
+          escapeHtml(
+            result.message ||
+            t("saveFail")
+          )
+        );
 
       }
 
-    })
+      return;
 
-    .withFailureHandler(function(error) {
-
-      showMessage(
-        "❌ บันทึกไม่สำเร็จ: " +
-        error.message,
-        "red"
-      );
+    }
 
 
-      button.innerText =
-        "💾 บันทึกทั้งหมดลง Google Sheet";
+    showMessage(
+      "save-message",
+      "success",
+      t("saveSuccess")
+    );
 
 
-      button.disabled = false;
+    // ล้างข้อมูลหลังบันทึก
+    document
+      .getElementById("barcode")
+      .value = "";
 
-    })
 
-    .saveScans(pendingData);
+    skus = [];
+
+    renderSkuList();
+
+
+    document
+      .getElementById("barcode-message")
+      .innerHTML = "";
+
+
+    document
+      .getElementById("sku-message")
+      .innerHTML = "";
+
+
+    loadHistory();
+
+
+  }catch(error){
+
+    showMessage(
+      "save-message",
+      "error",
+      "❌ " +
+      escapeHtml(
+        error.message ||
+        t("saveFail")
+      )
+    );
+
+  }finally{
+
+    saveBtn.disabled = false;
+
+    saveBtn.textContent =
+      t("save");
+
+  }
 
 }
 
 
-// ==================================================
-// โหลดประวัติ
-// ==================================================
+/* =====================================================
+   CLEAR
+===================================================== */
 
-function loadHistory() {
+function clearAll(){
 
-  google.script.run
+  if(
+    !confirm(
+      t("clearConfirm")
+    )
+  ){
 
-    .withSuccessHandler(function(data) {
+    return;
 
-      renderHistory(data);
+  }
 
-    })
 
-    .withFailureHandler(function(error) {
+  document
+    .getElementById("barcode")
+    .value = "";
 
-      console.log(error);
 
-    })
+  document
+    .getElementById("skuInput")
+    .value = "";
 
-    .getHistory();
+
+  skus = [];
+
+
+  barcodeProcessing = false;
+  skuProcessing = false;
+
+
+  renderSkuList();
+
+
+  document
+    .getElementById("barcode-message")
+    .innerHTML = "";
+
+
+  document
+    .getElementById("sku-message")
+    .innerHTML = "";
+
+
+  document
+    .getElementById("save-message")
+    .innerHTML = "";
 
 }
 
 
-// ==================================================
-// แสดงประวัติ
-// ==================================================
+/* =====================================================
+   HISTORY
+===================================================== */
 
-function renderHistory(data) {
+function loadHistory(){
 
   const body =
     document.getElementById("historyBody");
 
 
-  body.innerHTML = "";
+  body.innerHTML = `
+    <tr>
+      <td colspan="4">
+        ${escapeHtml(t("loading"))}
+      </td>
+    </tr>
+  `;
 
 
-  if (!data || data.length === 0) {
+  const callback =
+    "history_" +
+    Date.now() +
+    "_" +
+    Math.floor(Math.random()*99999);
 
-    body.innerHTML = `
 
-      <tr>
+  const script =
+    document.createElement("script");
 
-        <td colspan="5">
-          ยังไม่มีข้อมูล
-        </td>
 
-      </tr>
+  let finished = false;
 
-    `;
 
-    return;
+  const timer =
+    setTimeout(function(){
+
+      if(finished)return;
+
+      finished = true;
+
+      cleanup();
+
+      body.innerHTML = `
+        <tr>
+          <td colspan="4">
+            ❌ ${escapeHtml(t("saveFail"))}
+          </td>
+        </tr>
+      `;
+
+    },15000);
+
+
+  function cleanup(){
+
+    clearTimeout(timer);
+
+    try{
+      delete window[callback];
+    }catch(e){}
+
+    if(script.parentNode){
+      script.parentNode.removeChild(script);
+    }
 
   }
 
 
-  data.forEach(function(item, index) {
+  window[callback] =
+    function(data){
 
-    const isBarcode =
-      item.barcode &&
-      !item.sku;
+      if(finished)return;
 
+      finished = true;
 
-    const type =
-      isBarcode
-        ? "Barcode"
-        : "SKU";
+      cleanup();
 
 
-    const value =
-      isBarcode
-        ? item.barcode
-        : item.sku;
+      if(
+        !data ||
+        !data.success ||
+        !Array.isArray(data.history)
+      ){
+
+        body.innerHTML = `
+          <tr>
+            <td colspan="4">
+              ${escapeHtml(t("noHistory"))}
+            </td>
+          </tr>
+        `;
+
+        return;
+
+      }
 
 
-    const badge =
-      isBarcode
-        ? "badge-barcode"
-        : "badge-sku";
+      if(data.history.length===0){
+
+        body.innerHTML = `
+          <tr>
+            <td colspan="4">
+              ${escapeHtml(t("noHistory"))}
+            </td>
+          </tr>
+        `;
+
+        return;
+
+      }
 
 
-    body.innerHTML += `
+      let html = "";
 
-      <tr>
 
-        <td>
-          ${index + 1}
-        </td>
+      data.history.forEach(function(row){
 
-        <td>
-          ${escapeHtml(item.time || "")}
-        </td>
+        html += `
+          <tr>
 
-        <td>
-          ${escapeHtml(item.name || "")}
-        </td>
+            <td>
+              ${escapeHtml(
+                row.time || ""
+              )}
+            </td>
 
-        <td>
+            <td>
+              ${escapeHtml(
+                row.employee || ""
+              )}
+            </td>
 
-          <span class="${badge}">
-            ${type}
-          </span>
+            <td>
+              ${escapeHtml(
+                row.barcode || ""
+              )}
+            </td>
 
-        </td>
+            <td>
+              ${escapeHtml(
+                row.sku || ""
+              )}
+            </td>
 
-        <td>
-          ${escapeHtml(value || "")}
-        </td>
+          </tr>
+        `;
 
-      </tr>
+      });
 
-    `;
 
-  });
+      body.innerHTML = html;
+
+    };
+
+
+  script.onerror =
+    function(){
+
+      if(finished)return;
+
+      finished = true;
+
+      cleanup();
+
+      body.innerHTML = `
+        <tr>
+          <td colspan="4">
+            ❌ ${escapeHtml(t("saveFail"))}
+          </td>
+        </tr>
+      `;
+
+    };
+
+
+  script.src =
+    API_URL +
+    "?action=history" +
+    "&callback=" +
+    callback +
+    "&_=" +
+    Date.now();
+
+
+  document.body.appendChild(script);
 
 }
 
 
-// ==================================================
-// แสดงข้อความ
-// ==================================================
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
 
-function showMessage(text, color) {
+function escapeHtml(value){
 
-  const message =
-    document.getElementById("message");
-
-
-  message.innerText = text;
-
-
-  if (color === "red") {
-
-    message.style.color = "red";
-
-  }
-
-  else if (color === "green") {
-
-    message.style.color = "green";
-
-  }
-
-  else {
-
-    message.style.color = "#1769d1";
-
-  }
+  return String(value || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 
 }
 
 
-// ==================================================
-// ป้องกัน HTML แปลก ๆ
-// ==================================================
+/* =====================================================
+   START
+===================================================== */
 
-function escapeHtml(value) {
+document.addEventListener(
+  "DOMContentLoaded",
+  function(){
 
-  return String(value)
+    document
+      .getElementById("language")
+      .value =
+        currentLanguage;
 
-    .replace(/&/g, "&amp;")
+    applyLanguage();
 
-    .replace(/</g, "&lt;")
+    renderSkuList();
 
-    .replace(/>/g, "&gt;")
+    loadHistory();
 
-    .replace(/"/g, "&quot;")
-
-    .replace(/'/g, "&#039;");
-
-}
-
-
-// ==================================================
-// โหลดประวัติทันที
-// ==================================================
-
-window.onload = function() {
-
-  loadHistory();
-
-};
-
+  }
+);
 
 </script>
 
 </body>
-
 </html>
