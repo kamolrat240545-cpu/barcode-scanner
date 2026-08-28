@@ -1145,32 +1145,8 @@ function addSku(value) {
 
   }
 
-  // ไม่ให้ SKU ซ้ำในรายการเดียวกัน
-  const exists =
-    skus.some(function(item) {
-
-      return item.toUpperCase() ===
-             value.toUpperCase();
-
-    });
-
-
-  if (exists) {
-
-    showMessage(
-      "sku-message",
-      "warning",
-      "⚠️ SKU นี้มีอยู่แล้ว"
-    );
-
-    skuInputEl.value = "";
-
-    skuProcessing = false;
-
-    return;
-
-  }
-
+  // อนุญาตให้ SKU ซ้ำได้
+  // เพราะ SKU เดียวกันสามารถอยู่ในหลายออเดอร์/Barcode ได้
 
   skus.push(value);
 
