@@ -1950,3 +1950,622 @@ function escapeHtml(value){
   );
 
 }
+[L1009]     saveTitle:"💾 ဒေတာသိမ်းရန်",
+[L1010]     save:"💾 Google Sheets တွင်သိမ်းရန်",
+[L1011]     clear:"🗑️ ဒေတာရှင်းရန်",
+
+[L1012]     historyTitle:"🕘 နောက်ဆုံးစကင်မှတ်တမ်း",
+[L1013]     history:"🔄 မှတ်တမ်းဖတ်ရန်",
+
+[L1014]     time:"အချိန်",
+[L1015]     employeeHead:"ဝန်ထမ်း",
+[L1016]     barcodeHead:"Barcode",
+[L1017]     skuHead:"SKU",
+
+[L1018]     noSku:"SKU မရှိသေးပါ",
+[L1019]     loading:"⏳ ဖတ်နေသည်...",
+[L1020]     noHistory:"မှတ်တမ်းမရှိသေးပါ",
+
+[L1021]     barcodeChecking:"🔍 Barcode စစ်ဆေးနေသည်...",
+[L1022]     barcodeOK:"✅ Barcode အသုံးပြုနိုင်သည်",
+[L1023]     barcodeDuplicate:"⚠️ Barcode ထပ်နေသည်!",
+[L1024]     barcodeFail:"❌ Barcode စစ်ဆေးမအောင်မြင်ပါ",
+
+[L1025]     skuAdded:"✅ SKU ထည့်ပြီးပါပြီ",
+
+[L1026]     needEmployee:"❌ ဝန်ထမ်းရွေးချယ်ပါ",
+[L1027]     needBarcode:"❌ Barcode စကင်ဖတ်ပါ",
+[L1028]     needSku:"❌ SKU အနည်းဆုံးတစ်ခုထည့်ပါ",
+
+[L1029]     saveSuccess:"✅ ဒေတာသိမ်းပြီးပါပြီ",
+[L1030]     saving:"⏳ သိမ်းနေသည်...",
+[L1031]     saveFail:"❌ သိမ်းဆည်းမအောင်မြင်ပါ",
+
+[L1032]     clearConfirm:"လက်ရှိ Barcode နှင့် SKU များကို ဖျက်လိုပါသလား?"
+[L1033]   },
+
+[L1034]
+[L1035]   en:{
+[L1036]
+[L1037]     title:"📦 Barcode / SKU Scanner",
+[L1038]     employee:"👤 Select Employee",
+[L1039]     employeePlaceholder:"-- Select Employee --",
+[L1040]
+[L1041]     barcodeTitle:"📦 Barcode",
+[L1042]     openBarcode:"📷 Open Barcode Scanner",
+[L1043]     closeBarcode:"⬛ Close Barcode Scanner",
+[L1044]     barcodeInput:"Scanned Barcode",
+[L1045]     barcodePlaceholder:"Scan or type Barcode",
+[L1046]     checkBarcode:"🔍 Check Barcode",
+[L1047]
+[L1048]     skuTitle:"🏷️ SKU",
+[L1049]     openSku:"📷 Open SKU Scanner",
+[L1050]     closeSku:"⬛ Close SKU Scanner",
+[L1051]     skuInput:"Add SKU",
+[L1052]     skuPlaceholder:"Scan or type SKU",
+[L1053]     addSku:"➕ Add SKU",
+[L1054]     skuList:"SKU List",
+[L1055]
+[L1056]     saveTitle:"💾 Save Data",
+[L1057]     save:"💾 Save to Google Sheets",
+[L1058]     clear:"🗑️ Clear Data",
+[L1059]
+[L1060]     historyTitle:"🕘 Recent Scan History",
+[L1061]     history:"🔄 Load History",
+[L1062]
+[L1063]     time:"Time",
+[L1064]     employeeHead:"Employee",
+[L1065]     barcodeHead:"Barcode",
+[L1066]     skuHead:"SKU",
+[L1067]
+[L1068]     noSku:"No SKU yet",
+[L1069]     loading:"⏳ Loading...",
+[L1070]     noHistory:"No history",
+[L1071]
+[L1072]     barcodeChecking:"🔍 Checking Barcode...",
+[L1073]     barcodeOK:"✅ Barcode can be used",
+[L1074]     barcodeDuplicate:"⚠️ Barcode already exists!",
+[L1075]     barcodeFail:"❌ Barcode check failed",
+[L1076]
+[L1077]     skuAdded:"✅ SKU added successfully",
+[L1078]
+[L1079]     needEmployee:"❌ Please select employee",
+[L1080]     needBarcode:"❌ Please scan Barcode",
+[L1081]     needSku:"❌ Please add at least one SKU",
+[L1082]
+[L1083]     saveSuccess:"✅ Data saved successfully",
+[L1084]     saving:"⏳ Saving...",
+[L1085]     saveFail:"❌ Save failed",
+[L1086]
+[L1087]     clearConfirm:"Clear the current Barcode and SKU?"
+[L1088]   }
+[L1089]
+[L1090] };
+[L1091]
+[L1092]
+[L1093] /* =====================================================
+[L1094]    LANGUAGE
+[L1095] ===================================================== */
+[L1096]
+[L1097] let currentLanguage =
+[L1098]   localStorage.getItem("scannerLanguage") || "th";
+[L1099]
+[L1100]
+[L1101] function t(key){
+[L1102]
+[L1103]   return translations[currentLanguage][key]
+[L1104]     || translations.th[key]
+[L1105]     || key;
+[L1106]
+[L1107] }
+[L1108]
+[L1109]
+[L1110] function changeLanguage(){
+[L1111]
+[L1112]   currentLanguage =
+[L1113]     document.getElementById("language").value;
+[L1114]
+[L1115]   localStorage.setItem(
+[L1116]     "scannerLanguage",
+[L1117]     currentLanguage
+[L1118]   );
+[L1119]
+[L1120]   applyLanguage();
+[L1121]
+[L1122] }
+[L1123]
+[L1124]
+[L1125] function applyLanguage(){
+[L1126]
+[L1127]   document.getElementById("language").value =
+[L1128]     currentLanguage;
+[L1129]
+[L1130]   document.getElementById("title").innerText =
+[L1131]     t("title");
+[L1132]
+[L1133]   document.getElementById("employeeLabel").innerText =
+[L1134]     t("employee");
+[L1135]
+[L1136]   document.getElementById("barcodeTitle").innerText =
+[L1137]     t("barcodeTitle");
+[L1138]
+[L1139]   document.getElementById("openBarcodeBtn").innerText =
+[L1140]     t("openBarcode");
+[L1141]
+[L1142]   document.getElementById("closeBarcodeBtn").innerText =
+[L1143]     t("closeBarcode");
+[L1144]
+[L1145]   document.getElementById("barcodeInputLabel").innerText =
+[L1146]     t("barcodeInput");
+[L1147]
+[L1148]   document.getElementById("barcode").placeholder =
+[L1149]     t("barcodePlaceholder");
+[L1150]
+[L1151]   document.getElementById("checkBarcodeBtn").innerText =
+[L1152]     t("checkBarcode");
+[L1153]
+[L1154]
+[L1155]   document.getElementById("skuTitle").innerText =
+[L1156]     t("skuTitle");
+[L1157]
+[L1158]   document.getElementById("openSkuBtn").innerText =
+[L1159]     t("openSku");
+[L1160]
+[L1161]   document.getElementById("closeSkuBtn").innerText =
+[L1162]     t("closeSku");
+[L1163]
+[L1164]   document.getElementById("skuInputLabel").innerText =
+[L1165]     t("skuInput");
+[L1166]
+[L1167]   document.getElementById("skuInput").placeholder =
+[L1168]     t("skuPlaceholder");
+[L1169]
+[L1170]   document.getElementById("addSkuBtn").innerText =
+[L1171]     t("addSku");
+[L1172]
+[L1173]   document.getElementById("skuListTitle").innerText =
+[L1174]     t("skuList");
+[L1175]
+[L1176]   document.getElementById("saveTitle").innerText =
+[L1177]     t("saveTitle");
+[L1178]
+[L1179]   document.getElementById("saveBtn").innerText =
+[L1180]     t("save");
+[L1181]
+[L1182]   document.getElementById("clearBtn").innerText =
+[L1183]     t("clear");
+[L1184]
+[L1185]   document.getElementById("historyTitle").innerText =
+[L1186]     t("historyTitle");
+[L1187]
+[L1188]   document.getElementById("historyBtn").innerText =
+[L1189]     t("history");
+[L1190]
+[L1191]   document.getElementById("timeHead").innerText =
+[L1192]     t("time");
+[L1193]
+[L1194]   document.getElementById("employeeHead").innerText =
+[L1195]     t("employeeHead");
+[L1196]
+[L1197]   document.getElementById("barcodeHead").innerText =
+[L1198]     t("barcodeHead");
+[L1199]
+[L1200]   document.getElementById("skuHead").innerText =
+[L1201]     t("skuHead");
+[L1202]
+[L1203]   renderSkuList();
+[L1204]
+[L1205] }
+[L1206]
+[L1207]
+[L1208] /* =====================================================
+[L1209]    MESSAGE
+[L1210] ===================================================== */
+[L1211]
+[L1212] function showMessage(
+[L1213]   id,
+[L1214]   type,
+[L1215]   text
+[L1216] ){
+[L1217]
+[L1218]   const el =
+[L1219]     document.getElementById(id);
+[L1220]
+[L1221]   if(!el){
+[L1222]     return;
+[L1223]   }
+[L1224]
+[L1225]   el.className =
+[L1226]     "message " + type;
+[L1227]
+[L1228]   el.innerHTML =
+[L1229]     text;
+[L1230]
+[L1231] }
+[L1232]
+[L1233]
+[L1234] /* =====================================================
+[L1235]    BARCODE SCANNER
+[L1236] ===================================================== */
+[L1237]
+[L1238] async function startBarcodeScanner(){
+[L1239]
+[L1240]   if(barcodeScanning){
+[L1241]     return;
+[L1242]   }
+[L1243]
+[L1244]   barcodeProcessing =
+[L1245]     false;
+[L1246]
+[L1247]   document
+[L1248]     .getElementById("barcode-camera-area")
+[L1249]     .classList
+[L1250]     .remove("hidden");
+[L1251]
+[L1252]   document
+[L1253]     .getElementById("openBarcodeBtn")
+[L1254]     .classList
+[L1255]     .add("hidden");
+[L1256]
+[L1257]   try{
+[L1258]
+[L1259]     barcodeScanner =
+[L1260]       new Html5Qrcode(
+[L1261]         "barcode-reader"
+[L1262]       );
+[L1263]
+[L1264]     barcodeScanning =
+[L1265]       true;
+[L1266]
+[L1267]     await barcodeScanner.start(
+[L1268]
+[L1269]       {
+[L1270]         facingMode:"environment"
+[L1271]       },
+[L1272]
+[L1273]       {
+[L1274]         fps:15,
+[L1275]
+[L1276]         qrbox:function(
+[L1277]           width,
+[L1278]           height
+[L1279]         ){
+[L1280]
+[L1281]           return{
+[L1282]             width:
+[L1283]               Math.floor(width * .9),
+[L1284]
+[L1285]             height:
+[L1286]               Math.floor(
+[L1287]                 Math.min(
+[L1288]                   height * .5,
+[L1289]                   300
+[L1290]                 )
+[L1291]               )
+[L1292]           };
+[L1293]
+[L1294]         },
+[L1295]
+[L1296]         formatsToSupport:
+[L1297]           SKU_FORMATS
+[L1298]
+[L1299]       },
+[L1300]
+[L1301]       function(decodedText){
+[L1302]
+[L1303]         handleBarcodeScan(
+[L1304]           decodedText
+[L1305]         );
+[L1306]
+[L1307]       },
+[L1308]
+[L1309]       function(errorMessage){
+[L1310]
+[L1311]       }
+[L1312]
+[L1313]     );
+[L1314]
+[L1315]   }catch(error){
+[L1316]
+[L1317]     barcodeScanning =
+[L1318]       false;
+[L1319]
+[L1320]     barcodeProcessing =
+[L1321]       false;
+[L1322]
+[L1323]     if(barcodeScanner){
+[L1324]
+[L1325]       try{
+[L1326]         await barcodeScanner.clear();
+[L1327]       }catch(e){}
+[L1328]
+[L1329]       barcodeScanner =
+[L1330]         null;
+[L1331]
+[L1332]     }
+[L1333]
+[L1334]     document
+[L1335]       .getElementById("barcode-camera-area")
+[L1336]       .classList
+[L1337]       .add("hidden");
+[L1338]
+[L1339]     document
+[L1340]       .getElementById("openBarcodeBtn")
+[L1341]       .classList
+[L1342]       .remove("hidden");
+[L1343]
+[L1344]     showMessage(
+[L1345]       "barcode-message",
+[L1346]       "error",
+[L1347]       "❌ " +
+[L1348]       escapeHtml(
+[L1349]         error.message ||
+[L1350]         error
+[L1351]       )
+[L1352]     );
+[L1353]
+[L1354]   }
+[L1355]
+[L1356] }
+[L1357]
+  [L2058]         /*
+[L2059]          * สร้างแถวใหม่
+[L2060]          */
+[L2061]
+[L2062]         const tr =
+[L2063]           document.createElement("tr");
+[L2064]
+[L2065]
+[L2066]         const timeTd =
+[L2067]           document.createElement("td");
+[L2068]
+[L2069]         timeTd.innerText =
+[L2070]           item.time || "";
+[L2071]
+[L2072]
+[L2073]         const employeeTd =
+[L2074]           document.createElement("td");
+[L2075]
+[L2076]         employeeTd.innerText =
+[L2077]           item.employee || "";
+[L2078]
+[L2079]
+[L2080]         const barcodeTd =
+[L2081]           document.createElement("td");
+[L2082]
+[L2083]         barcodeTd.innerText =
+[L2084]           item.barcode || "";
+[L2085]
+[L2086]
+[L2087]         const skuTd =
+[L2088]           document.createElement("td");
+[L2089]
+[L2090]         skuTd.innerText =
+[L2091]           item.sku || "";
+[L2092]
+[L2093]
+[L2094]         tr.appendChild(timeTd);
+[L2095]         tr.appendChild(employeeTd);
+[L2096]         tr.appendChild(barcodeTd);
+[L2097]         tr.appendChild(skuTd);
+[L2098]
+[L2099]
+[L2100]         tbody.appendChild(tr);
+[L2101]
+[L2102]       });
+[L2103]
+[L2104]   }catch(error){
+[L2105]
+[L2106]     console.error(
+[L2107]       "History error:",
+[L2108]       error
+[L2109]     );
+[L2110]
+[L2111]     tbody.innerHTML = `
+[L2112]
+[L2113]       <tr>
+[L2114]
+[L2115]         <td
+[L2116]           colspan="4"
+[L2117]           style="
+[L2118]             color:#dc2626;
+[L2119]             text-align:center;
+[L2120]           "
+[L2121]         >
+[L2122]
+[L2123]           ❌ ${escapeHtml(
+[L2124]             error.message ||
+[L2125]             error
+[L2126]           )}
+[L2127]
+[L2128]         </td>
+[L2129]
+[L2130]       </tr>
+[L2131]
+[L2132]     `;
+[L2133]
+[L2134]   }
+[L2135]
+[L2136] }
+[L2137]
+[L2138]
+[L2139] /* =====================================================
+[L2140]    CLEAR ALL
+[L2141] ===================================================== */
+[L2142]
+[L2143] function clearAll(){
+[L2144]
+[L2145]   if(
+[L2146]     !confirm(
+[L2147]       t("clearConfirm")
+[L2148]     )
+[L2149]   ){
+[L2150]     return;
+[L2151]   }
+[L2152]
+[L2153]   /*
+[L2154]    * หยุดกล้องก่อน
+[L2155]    */
+[L2156]
+[L2157]   stopBarcodeScanner();
+[L2158]   stopSkuScanner();
+[L2159]
+[L2160]
+[L2161]   /*
+[L2162]    * ล้าง Barcode
+[L2163]    */
+[L2164]
+[L2165]   document
+[L2166]     .getElementById("barcode")
+[L2167]     .value = "";
+[L2168]
+[L2169]
+[L2170]   /*
+[L2171]    * ล้าง SKU
+[L2172]    */
+[L2173]
+[L2174]   document
+[L2175]     .getElementById("skuInput")
+[L2176]     .value = "";
+[L2177]
+[L2178]
+[L2179]   skus = [];
+[L2180]
+[L2181]   renderSkuList();
+[L2182]
+[L2183]
+[L2184]   showMessage(
+[L2185]     "barcode-message",
+[L2186]     "info",
+[L2187]     ""
+[L2188]   );
+[L2189]
+[L2190]   showMessage(
+[L2191]     "sku-message",
+[L2192]     "info",
+[L2193]     ""
+[L2194]   );
+[L2195]
+[L2196]   showMessage(
+[L2197]     "save-message",
+[L2198]     "info",
+[L2199]     ""
+[L2200]   );
+[L2201]
+[L2202] }
+[L2203]
+[L2204]
+[L2205] /* =====================================================
+[L2206]    ESCAPE HTML
+[L2207] ===================================================== */
+[L2208]
+[L2209] function escapeHtml(value){
+[L2210]
+[L2211]   return String(value || "")
+[L2212]
+[L2213]     .replace(
+[L2214]       /&/g,
+[L2215]       "&amp;"
+[L2216]     )
+[L2217]
+[L2218]     .replace(
+[L2219]       /</g,
+[L2220]       "&lt;"
+[L2221]     )
+[L2222]
+[L2223]     .replace(
+[L2224]       />/g,
+[L2225]       "&gt;"
+[L2226]     )
+[L2227]
+[L2228]     .replace(
+[L2229]       /"/g,
+[L2230]       "&quot;"
+[L2231]     )
+[L2232]
+[L2233]     .replace(
+[L2234]       /'/g,
+[L2235]       "&#039;"
+[L2236]     );
+[L2237]
+[L2238] }
+[L2239]
+[L2240]
+[L2241] /* =====================================================
+[L2242]    INITIALIZE
+[L2243] ===================================================== */
+[L2244]
+[L2245] document.addEventListener(
+[L2246]   "DOMContentLoaded",
+[L2247]   function(){
+[L2248]
+[L2249]     /*
+[L2250]      * ตั้งภาษา
+[L2251]      */
+[L2252]
+[L2253]     applyLanguage();
+[L2254]
+[L2255]
+[L2256]     /*
+[L2257]      * แสดงรายการ SKU
+[L2258]      */
+[L2259]
+[L2260]     renderSkuList();
+[L2261]
+[L2262]
+[L2263]     /*
+[L2264]      * กด Enter ในช่อง Barcode
+[L2265]      */
+[L2266]
+[L2267]     document
+[L2268]       .getElementById("barcode")
+[L2269]       .addEventListener(
+[L2270]         "keydown",
+[L2271]         function(event){
+[L2272]
+[L2273]           if(
+[L2274]             event.key === "Enter"
+[L2275]           ){
+[L2276]
+[L2277]             event.preventDefault();
+[L2278]
+[L2279]             checkBarcodeManual();
+[L2280]
+[L2281]           }
+[L2282]
+[L2283]         }
+[L2284]       );
+[L2285]
+[L2286]
+[L2287]     /*
+[L2288]      * กด Enter ในช่อง SKU
+[L2289]      */
+[L2290]
+[L2291]     document
+[L2292]       .getElementById("skuInput")
+[L2293]       .addEventListener(
+[L2294]         "keydown",
+[L2295]         function(event){
+[L2296]
+[L2297]           if(
+[L2298]             event.key === "Enter"
+[L2299]           ){
+[L2300]
+[L2301]             event.preventDefault();
+[L2302]
+[L2303]             addSkuManual();
+[L2304]
+[L2305]           }
+[L2306]
+[L2307]         }
+[L2308]       );
+[L2309]
+[L2310]   }
+[L2311] );
+[L2312]
+[L2313]
+[L2314] </script>
+[L2315]
+[L2316] </body>
+[L2317]
+[L2318] </html>
