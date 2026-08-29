@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 
 <title>Barcode / SKU Scanner</title>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@0.21.3"></script>
+<script src="https://unpkg.com/@zxing/browser@0.1.5"></script>
 
 <style>
-
 *{
   box-sizing:border-box;
 }
@@ -128,6 +126,64 @@ button:disabled{
   margin-top:12px;
 }
 
+/* =====================================================
+   SKU BARCODE SCANNER
+===================================================== */
+
+#sku-reader{
+  position:relative;
+  background:#000;
+  min-height:260px;
+}
+
+#sku-reader .sku-video{
+  width:100%;
+  height:auto;
+  min-height:260px;
+  max-height:70vh;
+  object-fit:cover;
+  display:block;
+  background:#000;
+}
+
+.sku-scan-guide{
+  position:absolute;
+  left:5%;
+  right:5%;
+  top:35%;
+  height:30%;
+  border:3px solid #00ff66;
+  border-radius:8px;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.18);
+  pointer-events:none;
+  z-index:5;
+}
+
+.sku-scan-line{
+  position:absolute;
+  left:7%;
+  right:7%;
+  top:49%;
+  height:2px;
+  background:#ff2020;
+  box-shadow:0 0 8px #ff2020;
+  pointer-events:none;
+  z-index:6;
+}
+
+.sku-scan-text{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  padding:9px;
+  color:#fff;
+  background:rgba(0,0,0,.65);
+  text-align:center;
+  font-size:15px;
+  z-index:7;
+}
+
 #barcode-reader,
 #sku-reader{
   width:100%;
@@ -228,15 +284,12 @@ th{
   }
 
 }
-
 </style>
-
 </head>
 
 <body>
 
 <div class="container">
-
 
 <!-- =====================================================
      HEADER
@@ -461,7 +514,6 @@ th{
   <h2 id="barcodeTitle">
     📦 Barcode
   </h2>
-
 
   <div
     id="barcode-camera-area"
@@ -694,11 +746,9 @@ th{
       <tbody id="historyBody">
 
         <tr>
-
           <td colspan="4">
             กด "โหลดประวัติ"
           </td>
-
         </tr>
 
       </tbody>
@@ -714,7 +764,6 @@ th{
 
 <script>
 
-
 /* =====================================================
    GOOGLE APPS SCRIPT URL
 ===================================================== */
@@ -728,23 +777,19 @@ const API_URL =
 ===================================================== */
 
 let barcodeScanner = null;
-
 let skuScanner = null;
 
 let barcodeScanning = false;
-
 let skuScanning = false;
 
 let barcodeProcessing = false;
-
 let skuProcessing = false;
 
 let skus = [];
 
 
 /* =====================================================
-   SKU BARCODE FORMATS
-   รองรับ Barcode แบบเส้น 1D
+   SUPPORTED BARCODE FORMATS
 ===================================================== */
 
 const SKU_FORMATS = [
@@ -765,7 +810,11 @@ const SKU_FORMATS = [
 
   Html5QrcodeSupportedFormats.ITF,
 
-  Html5QrcodeSupportedFormats.CODABAR
+  Html5QrcodeSupportedFormats.CODABAR,
+
+  Html5QrcodeSupportedFormats.DATA_MATRIX,
+
+  Html5QrcodeSupportedFormats.QR_CODE
 
 ];
 
@@ -784,6 +833,7 @@ const translations = {
 
     employeePlaceholder:"-- เลือกชื่อพนักงาน --",
 
+
     barcodeTitle:"📦 Barcode",
 
     openBarcode:"📷 เปิดกล้องสแกน Barcode",
@@ -795,6 +845,7 @@ const translations = {
     barcodePlaceholder:"สแกนหรือพิมพ์ Barcode",
 
     checkBarcode:"🔍 ตรวจสอบ Barcode",
+
 
     skuTitle:"🏷️ SKU",
 
@@ -810,15 +861,18 @@ const translations = {
 
     skuList:"รายการ SKU",
 
+
     saveTitle:"💾 บันทึกข้อมูล",
 
     save:"💾 บันทึกข้อมูลลง Google Sheets",
 
     clear:"🗑️ ล้างข้อมูล",
 
+
     historyTitle:"🕘 ประวัติการสแกนล่าสุด",
 
     history:"🔄 โหลดประวัติ",
+
 
     time:"เวลา",
 
@@ -828,11 +882,13 @@ const translations = {
 
     skuHead:"SKU",
 
+
     noSku:"ยังไม่มีรายการ SKU",
 
     loading:"⏳ กำลังโหลด...",
 
     noHistory:"ยังไม่มีประวัติ",
+
 
     barcodeChecking:"🔍 กำลังตรวจสอบ Barcode...",
 
@@ -842,7 +898,9 @@ const translations = {
 
     barcodeFail:"❌ ตรวจสอบ Barcode ไม่สำเร็จ",
 
+
     skuAdded:"✅ เพิ่ม SKU เรียบร้อยแล้ว",
+
 
     needEmployee:"❌ กรุณาเลือกชื่อพนักงาน",
 
@@ -850,11 +908,13 @@ const translations = {
 
     needSku:"❌ กรุณาเพิ่ม SKU อย่างน้อย 1 รายการ",
 
+
     saveSuccess:"✅ บันทึกข้อมูลเรียบร้อยแล้ว",
 
     saving:"⏳ กำลังบันทึก...",
 
     saveFail:"❌ บันทึกไม่สำเร็จ",
+
 
     clearConfirm:"ต้องการล้าง Barcode และ SKU ที่กำลังกรอกใช่หรือไม่?"
 
@@ -869,6 +929,7 @@ const translations = {
 
     employeePlaceholder:"-- 请选择员工 --",
 
+
     barcodeTitle:"📦 条码",
 
     openBarcode:"📷 打开条码扫描",
@@ -880,6 +941,7 @@ const translations = {
     barcodePlaceholder:"扫描或输入条码",
 
     checkBarcode:"🔍 检查条码",
+
 
     skuTitle:"🏷️ SKU",
 
@@ -895,15 +957,18 @@ const translations = {
 
     skuList:"SKU 列表",
 
+
     saveTitle:"💾 保存数据",
 
     save:"💾 保存到 Google Sheets",
 
     clear:"🗑️ 清除数据",
 
+
     historyTitle:"🕘 最近扫描记录",
 
     history:"🔄 加载记录",
+
 
     time:"时间",
 
@@ -913,11 +978,13 @@ const translations = {
 
     skuHead:"SKU",
 
+
     noSku:"暂无 SKU",
 
     loading:"⏳ 加载中...",
 
     noHistory:"暂无记录",
+
 
     barcodeChecking:"🔍 正在检查条码...",
 
@@ -927,7 +994,9 @@ const translations = {
 
     barcodeFail:"❌ 条码检查失败",
 
+
     skuAdded:"✅ SKU 添加成功",
+
 
     needEmployee:"❌ 请选择员工",
 
@@ -935,11 +1004,13 @@ const translations = {
 
     needSku:"❌ 请至少添加一个 SKU",
 
+
     saveSuccess:"✅ 数据保存成功",
 
     saving:"⏳ 保存中...",
 
     saveFail:"❌ 保存失败",
+
 
     clearConfirm:"确定要清除当前条码和 SKU 吗？"
 
@@ -954,6 +1025,7 @@ const translations = {
 
     employeePlaceholder:"-- ဝန်ထမ်းရွေးချယ်ပါ --",
 
+
     barcodeTitle:"📦 Barcode",
 
     openBarcode:"📷 Barcode စကင်ဖွင့်ရန်",
@@ -965,6 +1037,7 @@ const translations = {
     barcodePlaceholder:"Barcode စကင်ဖတ်ပါ သို့မဟုတ် ရိုက်ပါ",
 
     checkBarcode:"🔍 Barcode စစ်ဆေးရန်",
+
 
     skuTitle:"🏷️ SKU",
 
@@ -980,15 +1053,18 @@ const translations = {
 
     skuList:"SKU စာရင်း",
 
+
     saveTitle:"💾 ဒေတာသိမ်းရန်",
 
     save:"💾 Google Sheets တွင်သိမ်းရန်",
 
     clear:"🗑️ ဒေတာရှင်းရန်",
 
+
     historyTitle:"🕘 နောက်ဆုံးစကင်မှတ်တမ်း",
 
     history:"🔄 မှတ်တမ်းဖတ်ရန်",
+
 
     time:"အချိန်",
 
@@ -998,11 +1074,13 @@ const translations = {
 
     skuHead:"SKU",
 
+
     noSku:"SKU မရှိသေးပါ",
 
     loading:"⏳ ဖတ်နေသည်...",
 
     noHistory:"မှတ်တမ်းမရှိသေးပါ",
+
 
     barcodeChecking:"🔍 Barcode စစ်ဆေးနေသည်...",
 
@@ -1012,7 +1090,9 @@ const translations = {
 
     barcodeFail:"❌ Barcode စစ်ဆေးမအောင်မြင်ပါ",
 
+
     skuAdded:"✅ SKU ထည့်ပြီးပါပြီ",
+
 
     needEmployee:"❌ ဝန်ထမ်းရွေးချယ်ပါ",
 
@@ -1020,11 +1100,13 @@ const translations = {
 
     needSku:"❌ SKU အနည်းဆုံးတစ်ခုထည့်ပါ",
 
+
     saveSuccess:"✅ ဒေတာသိမ်းပြီးပါပြီ",
 
     saving:"⏳ သိမ်းနေသည်...",
 
     saveFail:"❌ သိမ်းဆည်းမအောင်မြင်ပါ",
+
 
     clearConfirm:"လက်ရှိ Barcode နှင့် SKU များကို ရှင်းမည်မှာ သေချာပါသလား?"
 
@@ -1039,6 +1121,7 @@ const translations = {
 
     employeePlaceholder:"-- Select employee --",
 
+
     barcodeTitle:"📦 Barcode",
 
     openBarcode:"📷 Scan Barcode",
@@ -1050,6 +1133,7 @@ const translations = {
     barcodePlaceholder:"Scan or enter Barcode",
 
     checkBarcode:"🔍 Check Barcode",
+
 
     skuTitle:"🏷️ SKU",
 
@@ -1065,15 +1149,18 @@ const translations = {
 
     skuList:"SKU List",
 
+
     saveTitle:"💾 Save Data",
 
     save:"💾 Save to Google Sheets",
 
     clear:"🗑️ Clear Data",
 
+
     historyTitle:"🕘 Recent Scan History",
 
     history:"🔄 Load History",
+
 
     time:"Time",
 
@@ -1083,11 +1170,13 @@ const translations = {
 
     skuHead:"SKU",
 
+
     noSku:"No SKU yet",
 
     loading:"⏳ Loading...",
 
     noHistory:"No history",
+
 
     barcodeChecking:"🔍 Checking Barcode...",
 
@@ -1097,7 +1186,9 @@ const translations = {
 
     barcodeFail:"❌ Barcode check failed",
 
+
     skuAdded:"✅ SKU added successfully",
+
 
     needEmployee:"❌ Please select an employee",
 
@@ -1105,11 +1196,13 @@ const translations = {
 
     needSku:"❌ Please add at least one SKU",
 
+
     saveSuccess:"✅ Data saved successfully",
 
     saving:"⏳ Saving...",
 
     saveFail:"❌ Save failed",
+
 
     clearConfirm:"Are you sure you want to clear the current Barcode and SKU?"
 
@@ -1121,10 +1214,6 @@ const translations = {
 let currentLanguage =
   localStorage.getItem("scannerLanguage") || "th";
 
-
-/* =====================================================
-   TRANSLATION FUNCTION
-===================================================== */
 
 function t(key){
 
@@ -1181,6 +1270,7 @@ function applyLanguage(){
 
     checkBarcodeBtn:"checkBarcode",
 
+
     skuTitle:"skuTitle",
 
     openSkuBtn:"openSku",
@@ -1193,15 +1283,18 @@ function applyLanguage(){
 
     skuListTitle:"skuList",
 
+
     saveTitle:"saveTitle",
 
     saveBtn:"save",
 
     clearBtn:"clear",
 
+
     historyTitle:"historyTitle",
 
     historyBtn:"history",
+
 
     timeHead:"time",
 
@@ -1305,6 +1398,7 @@ async function startBarcodeScanner(){
     barcodeScanner =
       new Html5Qrcode("barcode-reader");
 
+
     barcodeScanning = true;
 
 
@@ -1326,11 +1420,8 @@ async function startBarcodeScanner(){
             );
 
           return {
-
             width:size,
-
             height:size
-
           };
 
         },
@@ -1341,17 +1432,15 @@ async function startBarcodeScanner(){
 
       },
 
-
       function(decodedText){
 
         handleBarcodeScan(decodedText);
 
       },
 
-
       function(errorMessage){
 
-        // ไม่ต้องแสดง Error ระหว่างสแกน
+        /* ไม่ต้องแสดง error ระหว่างสแกน */
 
       }
 
@@ -1369,6 +1458,7 @@ async function startBarcodeScanner(){
     document
       .getElementById("openBarcodeBtn")
       .classList.remove("hidden");
+
 
     showMessage(
 
@@ -1640,7 +1730,9 @@ function checkBarcode(barcode){
             "warning",
 
             t("barcodeDuplicate") +
+
             "<br>" +
+
             escapeHtml(barcode)
 
           );
@@ -1720,221 +1812,377 @@ function checkBarcode(barcode){
 
 
 /* =====================================================
-   =====================================================
-   SKU CAMERA
-   =====================================================
-   แก้เฉพาะตรงนี้
-
-   จุดสำคัญ:
-   - รองรับ Barcode แบบเส้น 1D
-   - CODE 128
-   - CODE 39
-   - CODE 93
-   - EAN
-   - UPC
-   - ITF
-   - CODABAR
-   - กรอบสแกนกว้างและเตี้ย
-   - เหมาะกับ Barcode แนวนอน
+   SKU CAMERA - ZXING 1D BARCODE
 ===================================================== */
+
+let skuCodeReader = null;
+let skuVideoStream = null;
+let skuLastResult = "";
+let skuLastScanTime = 0;
+
 
 async function startSkuScanner(){
 
-  if(skuScanning)return;
-
+  if(skuScanning){
+    return;
+  }
 
   skuProcessing = false;
+  skuLastResult = "";
+  skuLastScanTime = 0;
+
+  const area =
+    document.getElementById("sku-camera-area");
+
+  const openBtn =
+    document.getElementById("openSkuBtn");
+
+  const reader =
+    document.getElementById("sku-reader");
 
 
-  document
-    .getElementById("sku-camera-area")
-    .classList.remove("hidden");
+  area.classList.remove("hidden");
+
+  openBtn.classList.add("hidden");
 
 
-  document
-    .getElementById("openSkuBtn")
-    .classList.add("hidden");
+  reader.innerHTML = `
+
+    <video
+      id="sku-video"
+      class="sku-video"
+      playsinline
+      autoplay
+      muted>
+    </video>
+
+    <div class="sku-scan-guide"></div>
+
+    <div class="sku-scan-line"></div>
+
+    <div class="sku-scan-text">
+      วาง Barcode แบบเส้นให้อยู่ในกรอบสีเขียว
+    </div>
+
+  `;
+
+
+  const video =
+    document.getElementById("sku-video");
 
 
   try{
 
-    skuScanner =
-      new Html5Qrcode("sku-reader");
+    /* =================================================
+       เปิดกล้องหลัง
+    ================================================= */
+
+    skuVideoStream =
+      await navigator.mediaDevices.getUserMedia({
+
+        video:{
+
+          facingMode:{
+            ideal:"environment"
+          },
+
+          width:{
+            ideal:1920
+          },
+
+          height:{
+            ideal:1080
+          },
+
+          frameRate:{
+            ideal:30,
+            max:30
+          }
+
+        },
+
+        audio:false
+
+      });
+
+
+    video.srcObject =
+      skuVideoStream;
+
+
+    await video.play();
+
+
+    /* =================================================
+       AUTOFOCUS
+    ================================================= */
+
+    try{
+
+      const track =
+        skuVideoStream
+          .getVideoTracks()[0];
+
+
+      const capabilities =
+        track.getCapabilities
+          ? track.getCapabilities()
+          : {};
+
+
+      const constraints = {
+
+        width:{
+          ideal:1920
+        },
+
+        height:{
+          ideal:1080
+        },
+
+        frameRate:{
+          ideal:30,
+          max:30
+        }
+
+      };
+
+
+      if(
+
+        capabilities.focusMode &&
+
+        capabilities.focusMode.includes(
+          "continuous"
+        )
+
+      ){
+
+        constraints.focusMode =
+          "continuous";
+
+      }
+
+
+      await track.applyConstraints(
+        constraints
+      );
+
+
+    }catch(e){
+
+      console.log(
+        "Autofocus not supported",
+        e
+      );
+
+    }
+
+
+    /* =================================================
+       ตรวจ ZXing
+    ================================================= */
+
+    if(
+      typeof ZXingBrowser === "undefined"
+    ){
+
+      throw new Error(
+        "ไม่พบ ZXing Barcode Scanner กรุณารีเฟรชหน้าเว็บ"
+      );
+
+    }
+
+
+    /* =================================================
+       ตั้งค่า Barcode แบบเส้น 1D
+    ================================================= */
+
+    const hints =
+      new Map();
+
+
+    if(
+
+      typeof ZXing !== "undefined" &&
+
+      ZXing.DecodeHintType &&
+
+      ZXing.BarcodeFormat
+
+    ){
+
+      hints.set(
+
+        ZXing.DecodeHintType.POSSIBLE_FORMATS,
+
+        [
+
+          ZXing.BarcodeFormat.CODE_128,
+
+          ZXing.BarcodeFormat.CODE_39,
+
+          ZXing.BarcodeFormat.CODE_93,
+
+          ZXing.BarcodeFormat.EAN_13,
+
+          ZXing.BarcodeFormat.EAN_8,
+
+          ZXing.BarcodeFormat.UPC_A,
+
+          ZXing.BarcodeFormat.UPC_E,
+
+          ZXing.BarcodeFormat.ITF,
+
+          ZXing.BarcodeFormat.CODABAR
+
+        ]
+
+      );
+
+
+      hints.set(
+
+        ZXing.DecodeHintType.TRY_HARDER,
+
+        true
+
+      );
+
+    }
+
+
+    skuCodeReader =
+      new ZXingBrowser.BrowserMultiFormatReader(
+        hints
+      );
 
 
     skuScanning = true;
 
 
-    await skuScanner.start(
+    /* =================================================
+       เริ่มอ่าน Barcode จากกล้อง
+    ================================================= */
 
-      {
-        facingMode:"environment"
-      },
+    skuCodeReader.decodeFromVideoDevice(
 
+      undefined,
 
-      {
+      video,
 
-        /*
-         * Barcode เส้นไม่จำเป็นต้องใช้ FPS สูง
-         */
-        fps:10,
+      function(result,error){
 
+        if(
+          !skuScanning ||
+          !result
+        ){
 
-        /*
-         * =================================================
-         * กรอบสแกน
-         *
-         * ทำให้กว้างมาก
-         * แต่ไม่สูงมาก
-         *
-         * เหมาะกับ Barcode แบบนี้:
-         *
-         * ||||||||||||||||||||||||||||||||
-         *
-         * เช่น CODE 128
-         * =================================================
-         */
+          return;
 
-        qrbox:function(w,h){
-
-          const width =
-            Math.floor(w * 0.92);
+        }
 
 
-          const height =
-            Math.max(
-
-              120,
-
-              Math.min(
-
-                Math.floor(h * 0.30),
-
-                220
-
-              )
-
-            );
+        const text =
+          String(
+            result.getText() || ""
+          ).trim();
 
 
-          return {
+        if(!text){
 
-            width:width,
+          return;
 
-            height:height
+        }
 
-          };
 
-        },
+        const now =
+          Date.now();
 
 
         /*
-         * ใช้ภาพกล้องแบบ 16:9
+         * ป้องกันสแกนซ้ำ
          */
-        aspectRatio:16/9,
+
+        if(
+
+          text === skuLastResult &&
+
+          now - skuLastScanTime < 2000
+
+        ){
+
+          return;
+
+        }
 
 
-        /*
-         * อ่านเฉพาะ Barcode แบบเส้น
-         */
-        formatsToSupport:SKU_FORMATS,
+        skuLastResult =
+          text;
 
 
-        /*
-         * ไม่บังคับใช้ BarcodeDetector
-         * เพื่อให้ html5-qrcode ใช้ตัวอ่านหลัก
-         */
-        useBarCodeDetectorIfSupported:false
-
-      },
+        skuLastScanTime =
+          now;
 
 
-      /*
-       * =================================================
-       * SCAN SUCCESS
-       * =================================================
-       */
-
-      function(decodedText,decodedResult){
-
-        handleSkuScan(decodedText);
-
-      },
-
-
-      /*
-       * =================================================
-       * SCAN ERROR
-       *
-       * ไม่ต้องแสดง
-       * เพราะจะเกิดทุกครั้งที่ยังอ่าน Barcode ไม่ได้
-       * =================================================
-       */
-
-      function(errorMessage){
-
-        // ไม่ต้องแสดง Error
+        handleSkuScan(text);
 
       }
 
     );
 
 
-    /*
-     * =================================================
-     * AUTO FOCUS
-     *
-     * ถ้ามือถือรองรับ จะพยายามเปิด Continuous Focus
-     * =================================================
-     */
-
-    try{
-
-      const capabilities =
-        skuScanner.getRunningTrackCapabilities();
-
-
-      if(
-
-        capabilities &&
-
-        capabilities.focusMode &&
-
-        capabilities.focusMode.includes("continuous")
-
-      ){
-
-        await skuScanner.applyVideoConstraints({
-
-          focusMode:"continuous"
-
-        });
-
-      }
-
-    }catch(e){
-
-      /*
-       * ถ้าเครื่องไม่รองรับ Autofocus
-       * ให้ทำงานต่อปกติ
-       */
-
-    }
-
-
   }catch(error){
+
+    console.error(
+      "SKU scanner error:",
+      error
+    );
+
 
     skuScanning = false;
 
 
-    document
-      .getElementById("sku-camera-area")
-      .classList.add("hidden");
+    if(skuCodeReader){
+
+      try{
+
+        skuCodeReader.reset();
+
+      }catch(e){}
 
 
-    document
-      .getElementById("openSkuBtn")
-      .classList.remove("hidden");
+      skuCodeReader = null;
+
+    }
+
+
+    if(skuVideoStream){
+
+      skuVideoStream
+        .getTracks()
+        .forEach(function(track){
+
+          try{
+
+            track.stop();
+
+          }catch(e){}
+
+        });
+
+
+      skuVideoStream = null;
+
+    }
+
+
+    reader.innerHTML = "";
+
+
+    area.classList.add("hidden");
+
+    openBtn.classList.remove("hidden");
 
 
     showMessage(
@@ -1944,11 +2192,8 @@ async function startSkuScanner(){
       "error",
 
       "❌ " +
-
       escapeHtml(
-
         error.message || error
-
       )
 
     );
@@ -1959,30 +2204,26 @@ async function startSkuScanner(){
 
 
 /* =====================================================
-   SKU SCAN
+   SKU SCAN SUCCESS
 ===================================================== */
 
 async function handleSkuScan(decodedText){
 
-  /*
-   * ป้องกันการอ่านซ้ำ
-   */
-  if(skuProcessing)return;
+  if(skuProcessing){
+
+    return;
+
+  }
 
 
   skuProcessing = true;
 
 
-  /*
-   * แปลงค่าที่อ่านได้เป็นข้อความ
-   */
   const sku =
-    String(decodedText || "").trim();
+    String(decodedText || "")
+      .trim();
 
 
-  /*
-   * ไม่มีค่า
-   */
   if(!sku){
 
     skuProcessing = false;
@@ -1993,14 +2234,16 @@ async function handleSkuScan(decodedText){
 
 
   /*
-   * หยุดกล้องทันทีเมื่ออ่านสำเร็จ
+   * ปิดกล้องก่อน
    */
+
   await stopSkuScanner();
 
 
   /*
-   * ใส่ค่าเข้า Input
+   * ใส่ค่าที่อ่านได้ลงช่อง SKU
    */
+
   document
     .getElementById("skuInput")
     .value =
@@ -2008,8 +2251,9 @@ async function handleSkuScan(decodedText){
 
 
   /*
-   * เพิ่ม SKU เข้า List ทันที
+   * เพิ่ม SKU เข้า list
    */
+
   addSku(sku);
 
 }
@@ -2024,31 +2268,75 @@ async function stopSkuScanner(){
   skuScanning = false;
 
 
-  if(skuScanner){
+  /*
+   * หยุด ZXing
+   */
+
+  if(skuCodeReader){
 
     try{
 
-      await skuScanner.stop();
+      skuCodeReader.reset();
 
     }catch(e){}
 
 
-    try{
-
-      await skuScanner.clear();
-
-    }catch(e){}
-
-
-    skuScanner = null;
+    skuCodeReader = null;
 
   }
 
+
+  /*
+   * ปิดกล้องจริง
+   */
+
+  if(skuVideoStream){
+
+    try{
+
+      skuVideoStream
+        .getTracks()
+        .forEach(function(track){
+
+          track.stop();
+
+        });
+
+    }catch(e){}
+
+
+    skuVideoStream = null;
+
+  }
+
+
+  /*
+   * ล้าง Video
+   */
+
+  const reader =
+    document.getElementById("sku-reader");
+
+
+  if(reader){
+
+    reader.innerHTML = "";
+
+  }
+
+
+  /*
+   * ซ่อนกล้อง
+   */
 
   document
     .getElementById("sku-camera-area")
     .classList.add("hidden");
 
+
+  /*
+   * แสดงปุ่มเปิดกล้อง
+   */
 
   document
     .getElementById("openSkuBtn")
