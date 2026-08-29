@@ -725,10 +725,13 @@ let skuScanning = false;
 let barcodeProcessing = false;
 let skuProcessing = false;
 
-/* ID ของรอบกล้อง SKU ปัจจุบัน */
-let skuScannerSession = 0;
-
 let skus = [];
+
+/* SKU ล่าสุดที่สแกนสำเร็จ */
+let lastScannedSku = "";
+
+/* เมื่อเปิดกล้องใหม่ ให้รอจนกว่าจะเจอ SKU ที่ไม่ใช่ตัวเดิม */
+let skuWaitingForNewCode = false;
 
 
 /* =====================================================
@@ -1755,18 +1758,17 @@ function checkBarcode(barcode){
 }
 
 
-/* =====================================================
-   SKU CAMERA
-   แก้ไขตรงนี้
-   รองรับ CODE_128 และ Barcode หลายรูปasync function startSkuScanner(){
+/* =============================async function startSkuScanner(){
 
   if(skuScanning)return;
 
-  /* สร้าง session ใหม่ทุกครั้งที่เปิดกล้อง */
-  const mySession = ++skuScannerSession;
-
   skuProcessing = false;
-  skuScanning = true;
+
+  /*
+   * เก็บ SKU ที่เพิ่งสแกนล่าสุดไว้
+   * รอบใหม่จะไม่ยอมรับค่าเดิมทันที
+   */
+  skuWaitingForNewCode = true;
 
   document
     .getElementById("sku-camera-area")
@@ -1776,22 +1778,17 @@ function checkBarcode(barcode){
     .getElementById("openSkuBtn")
     .classList.add("hidden");
 
-  const reader =
-    document.getElementById("sku-reader");
-
-  reader.innerHTML = "";
-
   try{
 
     skuScanner =
       new Html5Qrcode("sku-reader");
 
+    skuScanning = true;
+
     await skuScanner.start(
 
       {
-        facingMode:{
-          ideal:"environment"
-        }
+        facingMode:"environment"
       },
 
       {
@@ -1805,7 +1802,10 @@ function checkBarcode(barcode){
 
           const height =
             Math.floor(
-              Math.min(h * 0.55,300)
+              Math.min(
+                h * 0.55,
+                300
+              )
             );
 
           return {
@@ -1825,55 +1825,28 @@ function checkBarcode(barcode){
 
       },
 
-      function(decodedText,decodedResult){
+      function(decodedText, decodedResult){
 
-        /* callback จากกล้องรอบเก่า ห้ามเพิ่ม SKU */
-        if(mySession !== skuScannerSession){
-          return;
-        }
-
-        if(!skuScanning){
-          return;
-        }
-
-        handleSkuScan(
-          decodedText,
-          mySession
-        );
+        handleSkuScan(decodedText);
 
       },
 
       function(errorMessage){
-        /* ไม่ต้องแสดง error ระหว่างค้นหา Barcode */
+        /* ไม่ต้องแสดง error ระหว่างกำลังหา Barcode */
       }
 
     );
 
   }catch(error){
 
-    /* ถ้าเป็น session เก่า ไม่แตะ UI ของกล้องรอบใหม่ */
-    if(mySession !== skuScannerSession){
-      return;
-    }
-
     skuScanning = false;
-    skuProcessing = false;
 
     if(skuScanner){
-
-      try{
-        await skuScanner.stop();
-      }catch(e){}
-
       try{
         await skuScanner.clear();
       }catch(e){}
-
       skuScanner = null;
-
     }
-
-    reader.innerHTML = "";
 
     document
       .getElementById("sku-camera-area")
@@ -1899,68 +1872,61 @@ function checkBarcode(barcode){
 
 /* =====================================================
    SKU SCAN
+   ป้องกันเปิดกล้องรอบใหม่แล้วอ่าน SKU เดิมทันที
 ===================================================== */
 
-async function handleSkuScan(
-  decodedText,
-  sessionId
-){
+async function handleSkuScan(decodedText){
 
-  /* ป้องกัน callback จากกล้องเก่า */
-  if(sessionId !== skuScannerSession){
-    return;
-  }
+  if(!skuScanning)return;
 
-  if(!skuScanning){
-    return;
-  }
-
-  if(skuProcessing){
-    return;
-  }
+  if(skuProcessing)return;
 
   const sku =
     String(decodedText || "").trim();
 
-  if(!sku){
+  if(!sku)return;
+
+  /*
+   * ถ้าเป็น SKU เดิมจากรอบก่อน
+   * ไม่ต้องทำอะไร
+   * เพราะกล้องเพิ่งเปิดและยังเห็น Barcode เดิมอยู่
+   */
+  if(
+    skuWaitingForNewCode &&
+    sku === lastScannedSku
+  ){
     return;
   }
 
-  /* ล็อกก่อนหยุดกล้อง */
+  /*
+   * เจอ SKU ใหม่แล้ว
+   * ปลดสถานะรอ Barcode ใหม่
+   */
+  skuWaitingForNewCode = false;
+
   skuProcessing = true;
-  skuScanning = false;
 
-  /* ฆ่า callback ที่ยังค้างอยู่ของรอบนี้ */
-  skuScannerSession++;
+  /*
+   * จำ SKU ที่เพิ่งสแกน
+   */
+  lastScannedSku = sku;
 
-  const scanner = skuScanner;
-  skuScanner = null;
+  /*
+   * หยุดกล้องก่อนเพิ่มข้อมูล
+   */
+  await stopSkuScanner();
 
-  if(scanner){
-
-    try{
-      await scanner.stop();
-    }catch(e){}
-
-    try{
-      await scanner.clear();
-    }catch(e){}
-
-  }
-
-  document
-    .getElementById("sku-camera-area")
-    .classList.add("hidden");
-
-  document
-    .getElementById("openSkuBtn")
-    .classList.remove("hidden");
-
+  /*
+   * ใส่ค่าที่สแกนได้ลงช่อง SKU
+   */
   document
     .getElementById("skuInput")
-    .value = sku;
+    .value =
+      sku;
 
-  /* เพิ่ม SKU เพียงครั้งเดียว */
+  /*
+   * เพิ่ม SKU
+   */
   addSku(sku);
 
 }
@@ -1972,33 +1938,25 @@ async function handleSkuScan(
 
 async function stopSkuScanner(){
 
-  /* เปลี่ยน session เพื่อทำให้ callback เก่าหมดสิทธิ์ */
-  skuScannerSession++;
-
   skuScanning = false;
-  skuProcessing = false;
 
-  const scanner = skuScanner;
-  skuScanner = null;
-
-  if(scanner){
+  if(skuScanner){
 
     try{
-      await scanner.stop();
+      await skuScanner.stop();
     }catch(e){}
 
     try{
-      await scanner.clear();
+      await skuScanner.clear();
     }catch(e){}
 
+    skuScanner = null;
+
   }
 
-  const reader =
-    document.getElementById("sku-reader");
-
-  if(reader){
-    reader.innerHTML = "";
-  }
+  document
+    .getElementById("sku-reader")
+    .innerHTML = "";
 
   document
     .getElementById("sku-camera-area")
@@ -2011,7 +1969,12 @@ async function stopSkuScanner(){
 }
 
 
-ementById("openSkuBtn")
+    .getElementById("sku-camera-area")
+    .classList.add("hidden");
+
+
+  document
+    .getElementById("openSkuBtn")
     .classList.remove("hidden");
 
 }
