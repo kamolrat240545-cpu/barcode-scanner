@@ -235,10 +235,6 @@ th{
 
 <div class="container">
 
-<!-- =====================================================
-     HEADER
-===================================================== -->
-
 <div class="card">
 
   <div class="header">
@@ -284,14 +280,6 @@ th{
       เจ๋ง — นาย สหภาพ ทรัพย์บำเรอ
     </option>
 
-    <option value="นาย รวีวัฒธ์ สีเสน">
-      โฟกัส — นาย รวีวัฒธ์ สีเสน
-    </option>
-
-    <option value="นาย บัญชา ศุภศร">
-      ออย — นาย บัญชา ศุภศร
-    </option>
-
     <option value="นาย ธีรพัฒน์ ขวานทอง">
       ตี๋ — นาย ธีรพัฒน์ ขวานทอง
     </option>
@@ -302,10 +290,6 @@ th{
 
     <option value="นาง มัลลิกา เทียงดาห์">
       พี่เปิ้น — นาง มัลลิกา เทียงดาห์
-    </option>
-
-    <option value="น.ส.ประกายดาว ประทังเจริญ">
-      เนส — น.ส.ประกายดาว ประทังเจริญ
     </option>
 
     <option value="น.ส.กัลยา มูลพุ่มสาย">
@@ -380,14 +364,6 @@ th{
       บี้พิวหา — PYAE PHYO HAN
     </option>
 
-    <option value="Pyae Phyo">
-      ปิพิว — Pyae Phyo
-    </option>
-
-    <option value="PAING PAING SOE">
-      ไปไปซู — PAING PAING SOE
-    </option>
-
     <option value="NJAING MTO KO">
       ใน — NJAING MTO KO
     </option>
@@ -459,7 +435,6 @@ th{
     📦 Barcode
   </h2>
 
-
   <div
     id="barcode-camera-area"
     class="hidden">
@@ -479,7 +454,6 @@ th{
 
   </div>
 
-
   <button
     class="blue"
     id="openBarcodeBtn"
@@ -489,7 +463,6 @@ th{
 
   </button>
 
-
   <label
     id="barcodeInputLabel"
     style="margin-top:18px">
@@ -498,12 +471,10 @@ th{
 
   </label>
 
-
   <input
     id="barcode"
     autocomplete="off"
     placeholder="สแกนหรือพิมพ์ Barcode">
-
 
   <button
     class="blue"
@@ -513,7 +484,6 @@ th{
     🔍 ตรวจสอบ Barcode
 
   </button>
-
 
   <div id="barcode-message"></div>
 
@@ -530,7 +500,6 @@ th{
     🏷️ SKU
   </h2>
 
-
   <div
     id="sku-camera-area"
     class="hidden">
@@ -538,7 +507,6 @@ th{
     <div class="camera">
       <div id="sku-reader"></div>
     </div>
-
 
     <button
       class="gray"
@@ -551,7 +519,6 @@ th{
 
   </div>
 
-
   <button
     class="green"
     id="openSkuBtn"
@@ -561,7 +528,6 @@ th{
 
   </button>
 
-
   <label
     id="skuInputLabel"
     style="margin-top:18px">
@@ -570,12 +536,10 @@ th{
 
   </label>
 
-
   <input
     id="skuInput"
     autocomplete="off"
     placeholder="สแกนหรือพิมพ์ SKU">
-
 
   <button
     class="blue"
@@ -586,14 +550,11 @@ th{
 
   </button>
 
-
   <div id="sku-message"></div>
-
 
   <h3 id="skuListTitle">
     รายการ SKU
   </h3>
-
 
   <div id="skuList"></div>
 
@@ -610,7 +571,6 @@ th{
     💾 บันทึกข้อมูล
   </h2>
 
-
   <button
     class="green"
     id="saveBtn"
@@ -620,7 +580,6 @@ th{
 
   </button>
 
-
   <button
     class="gray"
     onclick="clearAll()"
@@ -629,7 +588,6 @@ th{
     🗑️ ล้างข้อมูล
 
   </button>
-
 
   <div id="save-message"></div>
 
@@ -646,7 +604,6 @@ th{
     🕘 ประวัติการสแกนล่าสุด
   </h2>
 
-
   <button
     class="blue"
     onclick="loadHistory()"
@@ -655,7 +612,6 @@ th{
     🔄 โหลดประวัติ
 
   </button>
-
 
   <div
     class="table-wrap"
@@ -687,7 +643,6 @@ th{
 
       </thead>
 
-
       <tbody id="historyBody">
 
         <tr>
@@ -712,7 +667,7 @@ th{
 <script>
 
 /* =====================================================
-   GOOGLE APPS SCRIPT
+   GOOGLE APPS SCRIPT URL
 ===================================================== */
 
 const API_URL =
@@ -734,12 +689,18 @@ let skuProcessing = false;
 
 let skus = [];
 
+
+/*
+ * สำคัญ:
+ * ใช้กันกล้องอ่าน SKU เดิมซ้ำ
+ */
+
 let lastScannedSku = "";
 let lastScannedSkuTime = 0;
 
 
 /* =====================================================
-   BARCODE FORMATS
+   SUPPORTED BARCODE FORMATS
 ===================================================== */
 
 const SKU_FORMATS = [
@@ -860,7 +821,6 @@ const translations = {
 
   },
 
-
   zh:{
 
     title:"📦 条码 / SKU 扫描系统",
@@ -944,7 +904,6 @@ const translations = {
     clearConfirm:"确定要清除当前条码和 SKU 吗？"
 
   },
-
 
   my:{
 
@@ -1030,7 +989,6 @@ const translations = {
       "လက်ရှိ Barcode နှင့် SKU များကို ရှင်းမည်မှာ သေချာပါသလား?"
 
   },
-
 
   en:{
 
@@ -1376,8 +1334,6 @@ async function startBarcodeScanner(){
 
 
       function(errorMessage){
-
-        // ไม่แสดง error ระหว่างกล้องกำลังค้นหา
 
       }
 
@@ -1847,17 +1803,8 @@ async function startSkuScanner(){
   if(skuScanning)return;
 
 
-  /*
-   * รีเซ็ตทุกครั้งก่อนเปิดกล้องใหม่
-   */
-
   skuProcessing = false;
 
-
-  /*
-   * สำคัญมาก
-   * เคลียร์ reader ก่อนสร้าง scanner ใหม่
-   */
 
   const reader =
     document.getElementById(
@@ -1909,18 +1856,12 @@ async function startSkuScanner(){
 
         fps:15,
 
-
-        /*
-         * กรอบใหญ่สำหรับ Barcode เส้น
-         */
-
         qrbox:function(w,h){
 
           const width =
             Math.floor(
               w * 0.90
             );
-
 
           const height =
             Math.floor(
@@ -1929,7 +1870,6 @@ async function startSkuScanner(){
                 300
               )
             );
-
 
           return {
 
@@ -1941,17 +1881,10 @@ async function startSkuScanner(){
 
         },
 
-
         aspectRatio:1.0,
-
-
-        /*
-         * รองรับ Barcode เส้นหลายชนิด
-         */
 
         formatsToSupport:
           SKU_FORMATS,
-
 
         experimentalFeatures:{
 
@@ -1977,11 +1910,6 @@ async function startSkuScanner(){
 
       function(errorMessage){
 
-        /*
-         * ไม่ต้องแสดง error
-         * เพราะจะเกิดทุกเฟรมที่อ่านไม่ได้
-         */
-
       }
 
     );
@@ -1991,10 +1919,8 @@ async function startSkuScanner(){
 
     skuScanning = false;
 
-
     const scanner =
       skuScanner;
-
 
     skuScanner = null;
 
@@ -2052,22 +1978,12 @@ async function handleSkuScan(
   decodedText
 ){
 
-  /*
-   * ถ้ากล้องไม่ได้เปิดอยู่
-   * callback เก่าจะไม่สามารถเพิ่ม SKU ได้
-   */
-
   if(!skuScanning){
 
     return;
 
   }
 
-
-  /*
-   * ถ้ากำลังประมวลผล
-   * ไม่รับค่าซ้ำ
-   */
 
   if(skuProcessing){
 
@@ -2090,8 +2006,7 @@ async function handleSkuScan(
 
 
   /*
-   * ป้องกัน Barcode เดิมถูกอ่านหลายครั้ง
-   * ในเวลาใกล้กัน
+   * กันการอ่าน Barcode เดิมซ้ำ
    */
 
   const now =
@@ -2124,7 +2039,7 @@ async function handleSkuScan(
 
 
   /*
-   * ใส่ค่าลงช่องก่อน
+   * ใส่ SKU ลงช่อง
    */
 
   document
@@ -2136,8 +2051,7 @@ async function handleSkuScan(
 
 
   /*
-   * สำคัญที่สุด:
-   * เพิ่ม SKU ก่อนปิดกล้อง
+   * เพิ่ม SKU ก่อน
    */
 
   addSku(
@@ -2146,7 +2060,7 @@ async function handleSkuScan(
 
 
   /*
-   * เพิ่มเสร็จแล้วค่อยปิดกล้อง
+   * แล้วค่อยปิดกล้อง
    */
 
   try{
@@ -2170,11 +2084,6 @@ async function handleSkuScan(
 ===================================================== */
 
 async function stopSkuScanner(){
-
-  /*
-   * ปิดสถานะก่อน
-   * เพื่อไม่ให้ callback เก่าเพิ่มซ้ำ
-   */
 
   skuScanning = false;
 
@@ -2272,7 +2181,7 @@ function addSkuManual(){
 
       "error",
 
-      t("skuInput")
+      "❌ กรุณากรอก SKU"
 
     );
 
@@ -2312,18 +2221,10 @@ function addSku(
   }
 
 
-  /*
-   * ไม่ห้าม SKU ซ้ำ
-   */
-
   skus.push(
     sku
   );
 
-
-  /*
-   * ล้างช่อง
-   */
 
   document
     .getElementById(
@@ -2332,16 +2233,8 @@ function addSku(
     .value = "";
 
 
-  /*
-   * แสดงรายการ
-   */
-
   renderSkuList();
 
-
-  /*
-   * แจ้งสำเร็จ
-   */
 
   showMessage(
 
@@ -2657,20 +2550,12 @@ async function saveData(){
     );
 
 
-    /*
-     * ล้าง Barcode
-     */
-
     document
       .getElementById(
         "barcode"
       )
       .value = "";
 
-
-    /*
-     * ล้าง SKU
-     */
 
     skus = [];
 
@@ -2743,10 +2628,6 @@ function clearAll(){
 
   }
 
-
-  /*
-   * หยุดกล้องทั้งสองตัว
-   */
 
   stopBarcodeScanner();
 
@@ -3010,7 +2891,6 @@ function loadHistory(){
 
               </td>
 
-
               <td>
 
                 ${escapeHtml(
@@ -3019,7 +2899,6 @@ function loadHistory(){
 
               </td>
 
-
               <td>
 
                 ${escapeHtml(
@@ -3027,7 +2906,6 @@ function loadHistory(){
                 )}
 
               </td>
-
 
               <td>
 
